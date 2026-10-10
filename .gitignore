@@ -1,0 +1,26 @@
+# Dependencias y compilados
+node_modules/
+target/
+dist/
+
+# Datos locales (BD H2 y CV subidos)
+data/
+
+# Entorno y secretos
+.env
+.env.*
+
+# Notas internas (no se publican)
+docs/*.md
+
+# IDE y sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Registros y temporales
+*.log
+frontend/test-results/
+frontend/playwright-report/

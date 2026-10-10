@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle, Eye, EyeOff, Lock, Mail, ShoppingBag } from 'lucide-react';
+import fondoTienda from '../assets/login-tienda.jpg';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { Boton } from '../components/ui';
@@ -52,60 +53,56 @@ export default function Login() {
   };
 
   const claseCampo = (conError?: string) =>
-    `w-full rounded-lg border bg-white/5 py-3 pl-10 pr-10 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primario ${
-      conError ? 'border-red-400' : 'border-white/20'
+    `w-full rounded-lg border bg-white/5 py-3 pl-10 pr-10 text-sm text-white transition-colors placeholder:text-slate-400 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-primario ${
+      conError ? 'border-red-400' : 'border-white/20 hover:border-white/40 focus:border-primario'
     }`;
 
   return (
-    <div className="grid min-h-screen bg-marino text-white lg:grid-cols-[55%_45%]">
+    // El anillo de foco se separa con el color del fondo oscuro, no con blanco
+    <div className="grid min-h-screen bg-marino text-white lg:grid-cols-[55%_45%] [&_*]:ring-offset-marino">
       <section className="relative hidden overflow-hidden lg:block" aria-hidden>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#33469B] via-[#22357C] to-marino" />
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,.35) 0 2px, transparent 2px 64px)' }}
-        />
-        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-marino to-transparent" />
-        <div className="relative flex h-full flex-col justify-between p-10">
+        <img src={fondoTienda} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        {/* Sombreado sobre la foto: da contraste al texto y separa este panel del formulario */}
+        <div className="absolute inset-0 bg-marino/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-marino via-marino/40 to-marino/60" />
+        <div className="relative flex h-full flex-col justify-between p-10 xl:p-14">
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primario">
-              <ShoppingBag className="h-6 w-6" />
-            </span>
+            <ShoppingBag className="h-10 w-10" strokeWidth={1.75} />
             <div className="leading-tight">
               <p className="text-2xl font-bold">Quova</p>
               <p className="text-sm text-slate-300">Moda &amp; Calzado</p>
             </div>
           </div>
-          <div>
-            <p className="text-3xl font-bold leading-snug">
+          <div className="max-w-md motion-safe:animate-entrada">
+            <p className="font-titulo text-4xl font-semibold leading-tight tracking-tight">
               El talento correcto,
               <br />
               en la tienda correcta.
             </p>
-            <p className="mt-3 text-sm text-slate-300">Panel interno de reclutamiento · RR. HH.</p>
+            <p className="mt-4 text-sm text-slate-200">Panel interno de reclutamiento · RR. HH.</p>
           </div>
         </div>
       </section>
 
-      <main className="flex items-center justify-center px-6 py-12">
-        <form onSubmit={enviar} noValidate className="w-full max-w-sm">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primario">
-              <ShoppingBag className="h-5 w-5" aria-hidden />
-            </span>
+      <main className="flex items-center justify-center bg-marino px-6 py-12 lg:border-l lg:border-white/10">
+        <form onSubmit={enviar} noValidate className="w-full max-w-sm motion-safe:animate-entrada">
+          <div className="mb-10 flex items-center gap-3 lg:hidden">
+            <ShoppingBag className="h-8 w-8" strokeWidth={1.75} aria-hidden />
             <p className="text-xl font-bold">Quova ATS</p>
           </div>
 
           <h1 className="text-3xl font-bold">Bienvenido</h1>
-          <p className="mt-2 text-sm text-slate-300">Ingresa con tu cuenta corporativa para acceder al panel.</p>
+          <p className="mt-3 text-sm text-slate-300">Ingresa con tu cuenta corporativa para acceder al panel.</p>
 
+          {/* Proximidad: 8 px dentro de cada campo, 28 px entre campos y 40 px entre bloques */}
           {expirada && !error && (
-            <p role="status" className="mt-6 rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-2.5 text-sm text-amber-100">
+            <p role="status" className="mt-8 rounded-lg border border-amber-300/40 bg-amber-400/10 px-3 py-2.5 text-sm text-amber-100">
               Tu sesión expiró. Vuelve a iniciar sesión para continuar donde estabas.
             </p>
           )}
 
           {error && (
-            <div role="alert" data-testid="login-error" className="mt-6 flex items-start gap-2 rounded-lg border border-red-400/50 bg-red-500/15 px-3 py-2.5 text-sm text-red-100">
+            <div role="alert" data-testid="login-error" className="mt-8 flex items-start gap-2 rounded-lg border border-red-400/50 bg-red-500/15 px-3 py-2.5 text-sm text-red-100">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <div>
                 <p className="font-semibold">{error.bloqueada ? 'Cuenta bloqueada temporalmente' : 'No pudimos iniciar sesión'}</p>
@@ -114,7 +111,7 @@ export default function Login() {
             </div>
           )}
 
-          <div className="mt-6">
+          <div className="mt-10">
             <label htmlFor="correo" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-200">
               Correo electrónico
             </label>
@@ -133,13 +130,14 @@ export default function Login() {
               />
             </div>
             {errores.correo && (
-              <p id="correo-error" role="alert" className="mt-1.5 text-xs font-medium text-red-300">
-                {errores.correo}
+              <p id="correo-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-red-300">
+                <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>{errores.correo}</span>
               </p>
             )}
           </div>
 
-          <div className="mt-5">
+          <div className="mt-7">
             <div className="mb-2 flex items-center justify-between">
               <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-200">
                 Contraseña
@@ -171,17 +169,18 @@ export default function Login() {
               </button>
             </div>
             {errores.password && (
-              <p id="password-error" role="alert" className="mt-1.5 text-xs font-medium text-red-300">
-                {errores.password}
+              <p id="password-error" role="alert" className="mt-1.5 flex items-start gap-1.5 text-xs font-medium text-red-300">
+                <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden />
+                <span>{errores.password}</span>
               </p>
             )}
           </div>
 
-          <Boton type="submit" ancho cargando={enviando} className="mt-7 !py-3 shadow-lg shadow-primario/30">
+          <Boton type="submit" ancho cargando={enviando} className="mt-10 !py-3.5 shadow-lg shadow-primario/30 transition-shadow hover:shadow-primario/50">
             {enviando ? 'Ingresando…' : 'Iniciar sesión'}
           </Boton>
 
-          <p className="mt-8 text-center text-xs text-slate-300">
+          <p className="mt-10 border-t border-white/10 pt-6 text-center text-xs text-slate-300">
             ¿Problemas de acceso?{' '}
             <button type="button" onClick={() => setAyuda(true)} className="rounded font-semibold text-blue-300 hover:text-blue-200">
               Contacta a TI

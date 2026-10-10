@@ -23,16 +23,17 @@ import {
 import { Boton, Cargando, ErrorDeCarga, Esqueleto, EstadoVacio, Etiqueta, Modal, type Tono } from '../components/ui';
 
 const CABECERA: Record<Etapa, string> = {
-  NUEVO: 'bg-blue-100 text-blue-900',
-  PRESELECCIONADO: 'bg-blue-300 text-blue-950',
-  ENTREVISTA: 'bg-blue-500 text-white',
-  PRUEBA: 'bg-blue-600 text-white',
-  OFERTA: 'bg-blue-800 text-white',
-  CONTRATADO: 'bg-emerald-600 text-white',
-  DESCARTADO: 'bg-slate-400 text-white',
+  // En modo oscuro la progresión se conserva con tintes translúcidos en vez de azules claros
+  NUEVO: 'bg-blue-100 text-blue-900 dark:bg-blue-500/15 dark:text-blue-200',
+  PRESELECCIONADO: 'bg-blue-300 text-blue-950 dark:bg-blue-500/25 dark:text-blue-100',
+  ENTREVISTA: 'bg-blue-500 text-white dark:bg-blue-600/40',
+  PRUEBA: 'bg-blue-600 text-white dark:bg-blue-600/60',
+  OFERTA: 'bg-blue-800 text-white dark:bg-blue-700/80',
+  CONTRATADO: 'bg-emerald-600 text-white dark:bg-emerald-600/50',
+  DESCARTADO: 'bg-slate-400 text-white dark:bg-slate-200 dark:text-slate-700',
 };
 
-const AVATAR = ['bg-blue-700', 'bg-emerald-700', 'bg-violet-700', 'bg-cyan-700', 'bg-amber-700', 'bg-slate-700'];
+const AVATAR = ['bg-blue-700', 'bg-emerald-700', 'bg-violet-700', 'bg-cyan-700', 'bg-amber-700', 'bg-[#334155]'];
 const MOTIVOS = Object.keys(ETIQUETA_MOTIVO) as MotivoDescarte[];
 
 /** Días en la etapa: verde hoy, ámbar de 1 a 3 días, rojo desde 4. El texto acompaña siempre al color. */
@@ -263,7 +264,8 @@ export default function Pipeline() {
           )}
         </div>
       ) : (
-        <div className="mt-4 overflow-x-auto pb-3">
+        // «relative» hace que el contenedor recorte también los textos sr-only (absolutos) de las columnas que quedan fuera
+        <div className="relative mt-4 overflow-x-auto pb-3">
           <div className="flex min-w-max gap-3" data-testid="tablero">
             {columnas.map((etapa) => {
               const tarjetas = visibles.filter((c) => c.etapa === etapa);

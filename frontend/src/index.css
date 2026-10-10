@@ -3,9 +3,48 @@
 @tailwind utilities;
 
 @layer base {
+  /* Tema claro. «.tema-claro» lo restablece en zonas que siempre son oscuras, como el menú lateral */
+  :root,
+  .tema-claro {
+    --fondo: 246 248 252;
+    --superficie: 255 255 255;
+    --slate-50: 248 250 252;
+    --slate-100: 241 245 249;
+    --slate-200: 226 232 240;
+    --slate-300: 203 213 225;
+    --slate-400: 148 163 184;
+    --slate-500: 100 116 139;
+    --slate-600: 71 85 105;
+    --slate-700: 51 65 85;
+    --slate-800: 30 41 59;
+    --slate-900: 15 23 42;
+    --slate-950: 2 6 23;
+  }
+  /* Tema oscuro del panel: la escala se invierte con un matiz marino */
+  .oscuro {
+    color-scheme: dark;
+    --fondo: 10 16 36;
+    --superficie: 18 26 52;
+    --slate-50: 24 33 62;
+    --slate-100: 31 41 74;
+    --slate-200: 41 53 90;
+    --slate-300: 60 74 114;
+    --slate-400: 124 138 170;
+    --slate-500: 152 166 194;
+    --slate-600: 182 194 216;
+    --slate-700: 204 214 230;
+    --slate-800: 226 232 240;
+    --slate-900: 241 245 249;
+    --slate-950: 255 255 255;
+  }
   html {
-    font-family: 'Inter Variable', Inter, system-ui, 'Segoe UI', sans-serif;
+    font-family: 'Manrope Variable', Manrope, system-ui, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.01em;
   }
   body {
     @apply bg-fondo text-slate-800;
@@ -22,7 +61,53 @@
   .control {
     @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primario focus:outline-none focus:ring-2 focus:ring-primario/30 disabled:bg-slate-100 disabled:text-slate-400;
   }
+  /* Flecha propia para que los desplegables se vean igual en todos los navegadores */
+  select.control {
+    @apply appearance-none bg-no-repeat pr-10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
   .control-error {
     @apply border-red-500 focus:border-red-500 focus:ring-red-500/30;
   }
 }
+
+/* ---------- Modo oscuro: superficies y tintes de color ---------- */
+.oscuro .bg-white,
+.oscuro .tarjeta,
+.oscuro .control {
+  background-color: rgb(var(--superficie));
+}
+.oscuro :focus-visible {
+  --tw-ring-offset-color: rgb(var(--fondo));
+}
+.oscuro .bg-blue-50,
+.oscuro .bg-primario-suave { background-color: rgb(59 130 246 / 0.16); }
+.oscuro .bg-emerald-50 { background-color: rgb(16 185 129 / 0.15); }
+.oscuro .bg-amber-50 { background-color: rgb(245 158 11 / 0.15); }
+.oscuro .bg-red-50 { background-color: rgb(239 68 68 / 0.16); }
+.oscuro .bg-rose-50 { background-color: rgb(244 63 94 / 0.16); }
+.oscuro .bg-cyan-50 { background-color: rgb(6 182 212 / 0.15); }
+.oscuro .bg-violet-50 { background-color: rgb(139 92 246 / 0.18); }
+
+.oscuro .text-blue-600,
+.oscuro .text-blue-700,
+.oscuro .text-primario { color: #93c5fd; }
+.oscuro .text-emerald-600,
+.oscuro .text-emerald-700 { color: #6ee7b7; }
+.oscuro .text-amber-800,
+.oscuro .text-amber-900 { color: #fcd34d; }
+.oscuro .text-red-600,
+.oscuro .text-red-700 { color: #fca5a5; }
+.oscuro .text-rose-600 { color: #fda4af; }
+.oscuro .text-cyan-600,
+.oscuro .text-cyan-700 { color: #67e8f9; }
+.oscuro .text-violet-600 { color: #c4b5fd; }
+
+.oscuro .ring-blue-200 { --tw-ring-color: rgb(96 165 250 / 0.35); }
+.oscuro .ring-emerald-200 { --tw-ring-color: rgb(52 211 153 / 0.35); }
+.oscuro .ring-amber-200 { --tw-ring-color: rgb(251 191 36 / 0.35); }
+.oscuro .ring-red-200 { --tw-ring-color: rgb(248 113 113 / 0.35); }
+.oscuro .border-emerald-200 { border-color: rgb(52 211 153 / 0.35); }
+.oscuro .border-red-200 { border-color: rgb(248 113 113 / 0.35); }

@@ -1,8 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useLayoutEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Archive,
-  BarChart3,
   Bell,
   Briefcase,
   CalendarDays,
@@ -10,40 +8,42 @@ import {
   LayoutGrid,
   LogOut,
   Menu,
+  Moon,
   Plus,
   Search,
   Settings,
   ShoppingBag,
   Store,
+  Sun,
   X,
   type LucideIcon,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { ENTREVISTAS } from '../lib/demo';
+import { useTema } from '../lib/tema';
 import { ETIQUETA_ROL, iniciales, PUEDE_GESTIONAR_VACANTES, type Dashboard, type Rol } from '../lib/tipos';
 
 interface Item {
   ruta: string;
   nombre: string;
   icono: LucideIcon;
-  /** Módulos del 60 % restante: se muestran en el menú, pero aún no están construidos. */
-  proximamente?: boolean;
   roles?: Rol[];
   contador?: 'vacantesAbiertas' | 'candidatosActivos';
+  /** Contador de un módulo con datos de muestra, que no sale del dashboard. */
+  fijo?: number;
 }
 
 const MENU_PRINCIPAL: Item[] = [
   { ruta: '/dashboard', nombre: 'Dashboard', icono: LayoutGrid },
   { ruta: '/vacantes', nombre: 'Vacantes', icono: Briefcase, contador: 'vacantesAbiertas' },
   { ruta: '/pipeline', nombre: 'Pipeline', icono: Kanban, contador: 'candidatosActivos' },
-  { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays, proximamente: true },
-  { ruta: '/banco-talento', nombre: 'Banco de talento', icono: Archive, proximamente: true, roles: ['RECLUTADOR', 'ADMIN'] },
-  { ruta: '/reportes', nombre: 'Reportes', icono: BarChart3, proximamente: true, roles: ['RECLUTADOR', 'ADMIN', 'GERENTE_REGIONAL'] },
+  { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays, fijo: ENTREVISTAS.filter((e) => e.estado === 'Pendiente').length },
 ];
 
 const MENU_SISTEMA: Item[] = [
-  { ruta: '/tiendas', nombre: 'Tiendas', icono: Store, proximamente: true },
-  { ruta: '/configuracion', nombre: 'Configuración', icono: Settings, proximamente: true, roles: ['ADMIN'] },
+  { ruta: '/tiendas', nombre: 'Tiendas', icono: Store },
+  { ruta: '/configuracion', nombre: 'Configuración', icono: Settings, roles: ['ADMIN'] },
 ];
 
 const TITULOS: Record<string, [string, string]> = {
@@ -51,11 +51,9 @@ const TITULOS: Record<string, [string, string]> = {
   '/vacantes': ['Vacantes por tienda', 'Gestiona las posiciones abiertas en toda la cadena'],
   '/vacantes/nueva': ['Crear vacante', 'Usa una plantilla por cargo para publicar rápido'],
   '/pipeline': ['Pipeline de candidatos', 'Tablero kanban por etapa · arrastra las tarjetas o usa «Avanzar»'],
-  '/entrevistas': ['Calendario de entrevistas', 'Módulo del siguiente avance'],
-  '/banco-talento': ['Banco de talento', 'Módulo del siguiente avance'],
-  '/reportes': ['Reportes', 'Módulo del siguiente avance'],
-  '/tiendas': ['Gestión de tiendas', 'Módulo del siguiente avance'],
-  '/configuracion': ['Configuración', 'Módulo del siguiente avance'],
+  '/entrevistas': ['Calendario de entrevistas', 'Agenda y seguimiento de entrevistas por tienda'],
+  '/tiendas': ['Gestión de tiendas', 'Administra sedes, encargados y cuotas de personal'],
+  '/configuracion': ['Configuración', 'Usuarios, roles, notificaciones y parámetros del sistema'],
 };
 
 export default function PanelLayout() {
@@ -66,6 +64,13 @@ export default function PanelLayout() {
   const [avisosAbiertos, setAvisosAbiertos] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [contadores, setContadores] = useState<Record<string, string>>({});
+  const { oscuro, alternar } = useTema();
+
+  // El tema se aplica solo mientras el panel está en pantalla: el login y el portal conservan su diseño
+  useLayoutEffect(() => {
+    document.documentElement.classList.toggle('oscuro', oscuro);
+    return () => document.documentElement.classList.remove('oscuro');
+  }, [oscuro]);
 
   // Los contadores del menú se refrescan al cambiar de pantalla para reflejar lo que el usuario acaba de hacer
   useEffect(() => {
@@ -91,19 +96,24 @@ export default function PanelLayout() {
       key={item.ruta}
       to={item.ruta}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-          isActive ? 'bg-primario text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white'
+        `group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+          isActive ? 'bg-primario font-semibold text-white shadow-md shadow-primario/20' : 'font-medium text-slate-300 hover:bg-white/5 hover:text-white'
         }`
       }
     >
-      <item.icono className="h-[18px] w-[18px] shrink-0" aria-hidden />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate">{item.nombre}</span>
-        {item.proximamente && <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Próximamente</span>}
-      </span>
-      {item.contador && contadores[item.contador] && (
-        <span className="rounded-full bg-primario px-2 py-0.5 text-[11px] font-bold text-white ring-1 ring-white/20">{contadores[item.contador]}</span>
-      )}
+      {({ isActive }) => {
+        const contador = item.contador ? contadores[item.contador] : item.fijo;
+        return (
+          <>
+            {/* El módulo activo va en azul, el color de «elemento activo» en todo el sistema */}
+            <item.icono className="h-[18px] w-[18px] shrink-0" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{item.nombre}</span>
+            {contador ? (
+              <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums text-white ${isActive ? 'bg-white/25' : 'bg-primario'}`}>{contador}</span>
+            ) : null}
+          </>
+        );
+      }}
     </NavLink>
   );
 
@@ -112,16 +122,14 @@ export default function PanelLayout() {
       {menuAbierto && <div className="fixed inset-0 z-30 bg-marino/50 lg:hidden" onClick={() => setMenuAbierto(false)} aria-hidden />}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-marino text-white transition-transform lg:translate-x-0 ${
+        className={`tema-claro fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-white/5 bg-gradient-to-b from-marino to-marino-oscuro text-white transition-transform lg:translate-x-0 ${
           menuAbierto ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primario">
-            <ShoppingBag className="h-5 w-5" aria-hidden />
-          </span>
+        <div className="flex items-center gap-3 px-6 pb-5 pt-6">
+          <ShoppingBag className="h-8 w-8 shrink-0" strokeWidth={1.75} aria-hidden />
           <div className="leading-tight">
-            <p className="text-sm font-bold">Quova ATS</p>
+            <p className="font-titulo text-lg font-semibold tracking-tight">Quova ATS</p>
             <p className="text-xs text-slate-400">Moda &amp; Calzado · RR. HH.</p>
           </div>
           <button type="button" className="ml-auto rounded p-1 text-slate-300 hover:bg-white/10 lg:hidden" onClick={() => setMenuAbierto(false)} aria-label="Cerrar menú">
@@ -129,15 +137,15 @@ export default function PanelLayout() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Menú del panel">
-          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Menú principal</p>
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-3" aria-label="Menú del panel">
+          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Menú principal</p>
           {visibles(MENU_PRINCIPAL).map(enlace)}
-          <p className="px-3 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sistema</p>
+          <p className="px-3 pb-2 pt-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Sistema</p>
           {visibles(MENU_SISTEMA).map(enlace)}
         </nav>
 
-        <div className="flex items-center gap-3 border-t border-white/10 px-4 py-4">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marino-claro text-xs font-bold">{iniciales(usuario.nombre)}</span>
+        <div className="m-2 flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 px-2.5 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primario text-xs font-bold">{iniciales(usuario.nombre)}</span>
           <div className="min-w-0 flex-1 leading-tight">
             <p className="truncate text-sm font-semibold" data-testid="usuario-nombre">{usuario.nombre}</p>
             <p className="truncate text-xs text-slate-400">
@@ -151,7 +159,7 @@ export default function PanelLayout() {
               cerrarSesion();
               navegar('/login');
             }}
-            className="rounded-md p-2 text-slate-300 hover:bg-white/10 hover:text-white"
+            className="shrink-0 rounded-md p-1.5 text-slate-300 hover:bg-white/10 hover:text-white"
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
           >
@@ -165,7 +173,7 @@ export default function PanelLayout() {
           <Menu className="h-5 w-5" />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-bold text-slate-900">{titulo}</h1>
+          <h1 className="truncate text-xl font-semibold text-slate-900">{titulo}</h1>
           {subtitulo && <p className="hidden truncate text-xs text-slate-500 sm:block">{subtitulo}</p>}
         </div>
 
@@ -180,6 +188,18 @@ export default function PanelLayout() {
             className="control w-56 !py-2 pl-9"
           />
         </form>
+
+        <button
+          type="button"
+          onClick={alternar}
+          className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
+          aria-label={oscuro ? 'Activar modo claro' : 'Activar modo oscuro'}
+          aria-pressed={oscuro}
+          title={oscuro ? 'Modo claro' : 'Modo oscuro'}
+          data-testid="boton-tema"
+        >
+          {oscuro ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+        </button>
 
         <div className="relative">
           <button

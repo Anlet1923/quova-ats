@@ -1,8 +1,28 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { AlertCircle, CalendarX, Check, CheckCircle2, FileText, Link2Off, Upload, UserCheck, WifiOff, X } from 'lucide-react';
+import {
+  AlertCircle,
+  Banknote,
+  CalendarDays,
+  CalendarX,
+  Check,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  FileText,
+  Link2Off,
+  Mail,
+  MapPin,
+  Smartphone,
+  Upload,
+  UserCheck,
+  UserRound,
+  WifiOff,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { api, ApiError } from '../lib/api';
-import { ETIQUETA_INICIO, ETIQUETA_TURNO, HORARIO_TURNO, type Inicio, type Turno, type VacantePublica } from '../lib/tipos';
+import { ETIQUETA_INICIO, ETIQUETA_TURNO, fechaCorta, HORARIO_TURNO, soles, type Inicio, type Turno, type VacantePublica } from '../lib/tipos';
 import { Boton, Campo, Cargando, MensajeError } from '../components/ui';
 import { ENLACE_PRIMARIO, ENLACE_SECUNDARIO, MarcoPortal, PantallaEstado } from './Marco';
 
@@ -101,13 +121,31 @@ function Opcion({ activa, onClick, children, multiple }: { activa: boolean; onCl
       role={multiple ? 'checkbox' : 'radio'}
       aria-checked={activa}
       onClick={onClick}
-      className={`flex min-h-[48px] w-full items-center justify-between gap-2 rounded-lg border px-4 py-3 text-left text-sm font-medium transition ${
-        activa ? 'border-primario bg-primario text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-primario'
+      className={`flex min-h-[48px] w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors ${
+        activa ? 'border-primario bg-primario text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-primario hover:bg-slate-50'
       }`}
     >
-      <span>{children}</span>
-      {activa && <Check className="h-4 w-4 shrink-0" aria-hidden />}
+      {/* La opción elegida se distingue por el relleno de color; el indicador separa la selección única (círculo) de la múltiple (cuadro) */}
+      <span
+        aria-hidden
+        className={`flex h-5 w-5 shrink-0 items-center justify-center border-2 transition-colors ${multiple ? 'rounded-md' : 'rounded-full'} ${
+          activa ? 'border-white bg-white text-primario' : 'border-slate-300 bg-white'
+        }`}
+      >
+        {activa && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
+      <span className="min-w-0">{children}</span>
     </button>
+  );
+}
+
+/** Ícono decorativo dentro del campo; la etiqueta visible sigue siendo la que lo nombra. */
+function ConIcono({ icono: Icono, children }: { icono: LucideIcon; children: ReactNode }) {
+  return (
+    <div className="relative">
+      <Icono className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-slate-400" aria-hidden />
+      {children}
+    </div>
   );
 }
 
@@ -388,32 +426,82 @@ export default function Postular() {
 
   return (
     <MarcoPortal>
-      <div className="tarjeta flex items-start gap-3 border-primario/30 bg-primario-suave p-4" data-testid="tarjeta-vacante">
-        <FileText className="mt-0.5 h-5 w-5 shrink-0 text-primario" aria-hidden />
-        <p className="text-sm text-slate-700">
-          <span className="block text-xs font-semibold uppercase tracking-wide text-primario">Postulando a:</span>
-          <strong className="text-slate-900">{vacante?.cargo}</strong> · Tienda {vacante?.tienda}
-          <span className="block text-xs text-slate-500">
-            Turno {vacante ? ETIQUETA_TURNO[vacante.turno].toLowerCase() : ''} · {vacante?.direccion}
-          </span>
-        </p>
-      </div>
-
-      <div className="mt-5" role="group" aria-label={`Paso ${paso + 1} de ${PASOS.length}`}>
-        <div className="flex gap-1.5" aria-hidden>
-          {PASOS.map((nombre, i) => (
-            <span key={nombre} className={`h-1.5 flex-1 rounded-full ${i < paso ? 'bg-emerald-500' : i === paso ? 'bg-primario' : 'bg-slate-200'}`} />
-          ))}
+      {/* En celular la vacante va arriba y el formulario debajo; en computadora, formulario a la izquierda y vacante a la derecha */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:gap-8">
+      <aside className="tarjeta overflow-hidden lg:sticky lg:top-32 lg:order-last" data-testid="tarjeta-vacante" aria-label="Vacante a la que postulas">
+        <div className="border-b border-slate-100 bg-primario-suave px-5 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primario">Postulando a:</p>
+          <p className="mt-1 text-lg font-bold leading-snug text-slate-900">
+            <strong className="font-bold">{vacante?.cargo}</strong> · Tienda {vacante?.tienda}
+          </p>
         </div>
-        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500" data-testid="indicador-paso">
-          Paso {paso + 1} de {PASOS.length}
-        </p>
-        <h1 ref={titulo} tabIndex={-1} className="text-xl font-bold text-slate-900 !ring-0 !ring-offset-0">
+        {/* Cada dato va pegado a su ícono; los grupos se separan entre sí con más aire */}
+        <ul className="space-y-2.5 px-5 py-4 text-sm text-slate-700">
+          <li className="flex items-center gap-2.5">
+            <Clock className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+            Turno {vacante ? ETIQUETA_TURNO[vacante.turno].toLowerCase() : ''}
+          </li>
+          <li className="flex items-start gap-2.5">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+            {vacante?.direccion}
+          </li>
+          <li className="hidden items-center gap-2.5 lg:flex">
+            <Banknote className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+            {soles(vacante?.salario)} al mes
+          </li>
+          <li className="hidden items-center gap-2.5 lg:flex">
+            <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
+            Postula hasta el {fechaCorta(vacante?.fechaCierre)}
+          </li>
+        </ul>
+        {(vacante?.descripcion || vacante?.requisitos) && (
+          <div className="hidden space-y-4 border-t border-slate-100 px-5 py-4 lg:block">
+            {vacante.descripcion && (
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">El puesto</h2>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{vacante.descripcion}</p>
+              </div>
+            )}
+            {vacante.requisitos && (
+              <div>
+                <h2 className="text-sm font-semibold text-slate-900">Requisitos</h2>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{vacante.requisitos}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </aside>
+
+      <div className="tarjeta p-5 sm:p-8">
+      <div role="group" aria-label={`Paso ${paso + 1} de ${PASOS.length}`}>
+        <ol className="flex items-center" aria-hidden>
+          {PASOS.map((nombre, i) => (
+            <li key={nombre} className="flex flex-1 items-center last:flex-none">
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300 ${
+                  i < paso ? 'bg-emerald-500 text-white' : i === paso ? 'bg-primario text-white ring-4 ring-primario/20' : 'bg-slate-100 text-slate-400'
+                }`}
+              >
+                {i < paso ? <Check className="h-4 w-4" strokeWidth={3} /> : i + 1}
+              </span>
+              <span className={`ml-2 hidden whitespace-nowrap text-xs font-semibold xl:block ${i === paso ? 'text-slate-900' : 'text-slate-400'}`}>{nombre}</span>
+              {i < PASOS.length - 1 && <span className={`mx-2 h-0.5 flex-1 rounded-full transition-colors duration-300 xl:mx-3 ${i < paso ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
+            </li>
+          ))}
+        </ol>
+        <div className="mt-6 flex items-baseline justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primario" data-testid="indicador-paso">
+            Paso {paso + 1} de {PASOS.length}
+          </p>
+          {paso < PASOS.length - 1 && <p className="truncate text-xs text-slate-400">Luego: {PASOS[paso + 1]}</p>}
+        </div>
+        <h1 ref={titulo} tabIndex={-1} className="mt-1 text-2xl font-bold text-slate-900 !ring-0 !ring-offset-0">
           {PASOS[paso]}
         </h1>
       </div>
 
-      <form onSubmit={paso < 3 ? siguiente : (e) => { e.preventDefault(); enviar(); }} noValidate className="mt-4 space-y-5">
+      {/* La clave reinicia la animación de entrada en cada paso. Entre grupos de campos hay más aire que entre una etiqueta y su campo */}
+      <form key={paso} onSubmit={paso < 3 ? siguiente : (e) => { e.preventDefault(); enviar(); }} noValidate className="mt-6 space-y-7 border-t border-slate-100 pt-6 motion-safe:animate-entrada">
         {erroresDelPaso.length > 1 && (
           <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700" data-testid="resumen-errores">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
@@ -428,34 +516,51 @@ export default function Postular() {
         )}
 
         {paso === 0 && (
-          <>
-            <Campo etiqueta="Nombre completo" error={errores.nombre}>
-              {(p) => <input {...p} name="nombre" autoComplete="name" placeholder="Ej.: María Pérez Soto" className={clase('nombre')} value={datos.nombre} onChange={(e) => cambiar('nombre', e.target.value)} onBlur={() => alSalir('nombre')} />}
-            </Campo>
+          // En celular los campos van uno debajo del otro; desde tableta, en dos columnas
+          <div className="grid gap-x-5 gap-y-6 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Campo etiqueta="Nombre completo" error={errores.nombre}>
+                {(p) => (
+                  <ConIcono icono={UserRound}>
+                    <input {...p} name="nombre" autoComplete="name" placeholder="Ej.: María Pérez Soto" className={`${clase('nombre')} !pl-11`} value={datos.nombre} onChange={(e) => cambiar('nombre', e.target.value)} onBlur={() => alSalir('nombre')} />
+                  </ConIcono>
+                )}
+              </Campo>
+            </div>
             <Campo etiqueta="DNI (8 dígitos)" error={errores.dni}>
               {(p) => (
-                <input {...p} name="dni" inputMode="numeric" maxLength={8} placeholder="Ej.: 71234567" className={clase('dni')} value={datos.dni} onChange={(e) => cambiar('dni', e.target.value.replace(/\D/g, ''))} onBlur={() => alSalir('dni')} />
+                <ConIcono icono={CreditCard}>
+                  <input {...p} name="dni" inputMode="numeric" maxLength={8} placeholder="Ej.: 71234567" className={`${clase('dni')} !pl-11`} value={datos.dni} onChange={(e) => cambiar('dni', e.target.value.replace(/\D/g, ''))} onBlur={() => alSalir('dni')} />
+                </ConIcono>
               )}
             </Campo>
             <Campo etiqueta="Celular (9 dígitos)" error={errores.celular} ayuda="Te contactaremos por WhatsApp o llamada a este número.">
               {(p) => (
-                <input {...p} name="celular" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={9} placeholder="Ej.: 987654321" className={clase('celular')} value={datos.celular} onChange={(e) => cambiar('celular', e.target.value.replace(/\D/g, ''))} onBlur={() => alSalir('celular')} />
+                <ConIcono icono={Smartphone}>
+                  <input {...p} name="celular" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={9} placeholder="Ej.: 987654321" className={`${clase('celular')} !pl-11`} value={datos.celular} onChange={(e) => cambiar('celular', e.target.value.replace(/\D/g, ''))} onBlur={() => alSalir('celular')} />
+                </ConIcono>
               )}
             </Campo>
             <Campo etiqueta="Correo electrónico" opcional error={errores.correo}>
-              {(p) => <input {...p} name="correo" type="email" inputMode="email" autoComplete="email" placeholder="Ej.: maria@correo.com" className={clase('correo')} value={datos.correo} onChange={(e) => cambiar('correo', e.target.value)} onBlur={() => alSalir('correo')} />}
+              {(p) => (
+                <ConIcono icono={Mail}>
+                  <input {...p} name="correo" type="email" inputMode="email" autoComplete="email" placeholder="Ej.: maria@correo.com" className={`${clase('correo')} !pl-11`} value={datos.correo} onChange={(e) => cambiar('correo', e.target.value)} onBlur={() => alSalir('correo')} />
+                </ConIcono>
+              )}
             </Campo>
             <Campo etiqueta="Distrito de residencia" error={errores.distrito}>
               {(p) => (
-                <select {...p} name="distrito" className={clase('distrito')} value={datos.distrito} onChange={(e) => cambiar('distrito', e.target.value)}>
-                  <option value="">Selecciona tu distrito</option>
-                  {DISTRITOS.map((d) => (
-                    <option key={d}>{d}</option>
-                  ))}
-                </select>
+                <ConIcono icono={MapPin}>
+                  <select {...p} name="distrito" className={`${clase('distrito')} !pl-11`} value={datos.distrito} onChange={(e) => cambiar('distrito', e.target.value)}>
+                    <option value="">Selecciona tu distrito</option>
+                    {DISTRITOS.map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                  </select>
+                </ConIcono>
               )}
             </Campo>
-          </>
+          </div>
         )}
 
         {paso === 1 && (
@@ -476,7 +581,7 @@ export default function Postular() {
               <legend className="mb-2 text-sm font-medium text-slate-700">
                 Turnos en los que puedes trabajar <span className="font-normal text-slate-500">(puedes elegir varios)</span>
               </legend>
-              <div className="space-y-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {TURNOS.map((t) => (
                   <Opcion key={t} multiple activa={datos.turnos.includes(t)} onClick={() => cambiar('turnos', datos.turnos.includes(t) ? datos.turnos.filter((x) => x !== t) : [...datos.turnos, t])}>
                     {ETIQUETA_TURNO[t]} <span className="font-normal opacity-80">· {HORARIO_TURNO[t]}</span>
@@ -509,7 +614,7 @@ export default function Postular() {
             {datos.experienciaRetail === true && (
               <fieldset data-testid="tiempo-experiencia">
                 <legend className="mb-2 text-sm font-medium text-slate-700">¿Cuánto tiempo de experiencia tienes?</legend>
-                <div role="radiogroup" className="grid grid-cols-2 gap-2">
+                <div role="radiogroup" className="grid gap-2 min-[420px]:grid-cols-2">
                   {TIEMPOS.map((t) => (
                     <Opcion key={t} activa={datos.tiempoExperiencia === t} onClick={() => cambiar('tiempoExperiencia', t)}>
                       {t}
@@ -524,19 +629,21 @@ export default function Postular() {
 
         {paso === 2 && (
           <>
-            {(['motivacion', 'atencionAfluencia'] as const).map((campo) => (
-              <Campo
-                key={campo}
-                etiqueta={campo === 'motivacion' ? '1. ¿Por qué te interesa trabajar en Quova?' : '2. ¿Cómo atiendes a los clientes cuando hay mucha gente en la tienda?'}
-                error={errores[campo]}
-                ayuda={`${datos[campo].trim().length} de ${MIN_RESPUESTA} caracteres como mínimo`}
-              >
-                {(p) => <textarea {...p} name={campo} rows={4} maxLength={600} className={clase(campo)} value={datos[campo]} onChange={(e) => cambiar(campo, e.target.value)} onBlur={() => alSalir(campo)} />}
-              </Campo>
-            ))}
+            <div className="grid gap-6">
+              {(['motivacion', 'atencionAfluencia'] as const).map((campo) => (
+                <Campo
+                  key={campo}
+                  etiqueta={campo === 'motivacion' ? '1. ¿Por qué te interesa trabajar en Quova?' : '2. ¿Cómo atiendes a los clientes cuando hay mucha gente en la tienda?'}
+                  error={errores[campo]}
+                  ayuda={`${datos[campo].trim().length} de ${MIN_RESPUESTA} caracteres como mínimo`}
+                >
+                  {(p) => <textarea {...p} name={campo} rows={4} maxLength={600} className={clase(campo)} value={datos[campo]} onChange={(e) => cambiar(campo, e.target.value)} onBlur={() => alSalir(campo)} />}
+                </Campo>
+              ))}
+            </div>
             <fieldset>
               <legend className="mb-2 text-sm font-medium text-slate-700">3. ¿Puedes trabajar en más de un local de Quova?</legend>
-              <div role="radiogroup" className="space-y-2">
+              <div role="radiogroup" className="grid gap-2 sm:grid-cols-2">
                 <Opcion activa={datos.otrosLocales === true} onClick={() => cambiar('otrosLocales', true)}>
                   Sí, otros locales
                 </Opcion>
@@ -550,8 +657,8 @@ export default function Postular() {
         )}
 
         {paso === 3 && (
-          <>
-            <div>
+          <div className="grid gap-6">
+            <div className="relative">
               <p className="mb-1.5 text-sm font-medium text-slate-700">
                 Currículum (CV) <span className="font-normal text-slate-400">(opcional)</span>
               </p>
@@ -569,11 +676,13 @@ export default function Postular() {
               ) : (
                 <label
                   htmlFor="cv"
-                  className={`flex cursor-pointer flex-col items-center gap-1 rounded-lg border-2 border-dashed px-4 py-6 text-center focus-within:ring-2 focus-within:ring-primario ${
-                    errores.cv ? 'border-red-400 bg-red-50' : 'border-slate-300 bg-white hover:border-primario'
+                  className={`flex cursor-pointer flex-col items-center gap-1 rounded-lg border-2 border-dashed px-4 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-primario ${
+                    errores.cv ? 'border-red-400 bg-red-50' : 'border-slate-300 bg-white hover:border-primario hover:bg-primario-suave'
                   }`}
                 >
-                  <Upload className="h-6 w-6 text-slate-400" aria-hidden />
+                  <span className="mb-1 flex h-10 w-10 items-center justify-center rounded-full bg-primario-suave text-primario">
+                    <Upload className="h-5 w-5" aria-hidden />
+                  </span>
                   <span className="text-sm font-semibold text-primario">Subir mi CV</span>
                   <span className="text-xs text-slate-500">PDF o Word, hasta 10 MB</span>
                 </label>
@@ -586,11 +695,15 @@ export default function Postular() {
             </div>
 
             <div>
-              <label className={`flex items-start gap-3 rounded-lg border bg-white p-4 ${errores.consentimiento ? 'border-red-400' : 'border-slate-200'}`}>
+              <label
+                className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                  errores.consentimiento ? 'border-red-400 bg-white' : datos.consentimiento ? 'border-primario bg-primario-suave' : 'border-slate-200 bg-white'
+                }`}
+              >
                 <input
                   type="checkbox"
                   name="consentimiento"
-                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300"
+                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-slate-300 accent-primario"
                   checked={datos.consentimiento}
                   onChange={(e) => cambiar('consentimiento', e.target.checked)}
                 />
@@ -600,33 +713,36 @@ export default function Postular() {
               </label>
               {errores.consentimiento && <MensajeError>{errores.consentimiento}</MensajeError>}
             </div>
-          </>
+          </div>
         )}
 
-        <div className="flex flex-col gap-2 pt-1">
+        {/* Botones de ancho completo en celular; desde tableta, «Anterior» a la izquierda y la acción principal a la derecha */}
+        <div className="flex flex-col gap-2 pt-1 sm:flex-row-reverse sm:flex-wrap sm:items-center sm:justify-between sm:border-t sm:border-slate-100 sm:pt-5">
           {paso < 3 ? (
-            <Boton type="submit" ancho cargando={ocupado} className="!py-3 !text-base">
+            <Boton type="submit" ancho cargando={ocupado} className="!py-3 !text-base shadow-md shadow-primario/20 sm:!w-auto sm:min-w-[12rem]">
               {ocupado ? 'Verificando…' : 'Siguiente'}
             </Boton>
           ) : (
             <>
-              <Boton type="submit" ancho cargando={ocupado} disabled={!datos.consentimiento} aria-describedby="ayuda-envio" className="!py-3 !text-base">
+              <Boton type="submit" ancho cargando={ocupado} disabled={!datos.consentimiento} aria-describedby="ayuda-envio" className="!py-3 !text-base sm:!w-auto sm:min-w-[12rem]">
                 {ocupado ? 'Enviando…' : 'Enviar postulación'}
               </Boton>
               {!datos.consentimiento && (
-                <p id="ayuda-envio" className="text-center text-xs text-slate-500">
+                <p id="ayuda-envio" className="text-center text-xs text-slate-500 sm:order-first sm:basis-full sm:text-right">
                   Para enviar, acepta el tratamiento de tus datos.
                 </p>
               )}
             </>
           )}
           {paso > 0 && (
-            <Boton variante="secundario" ancho disabled={ocupado} onClick={() => setPaso((p) => p - 1)} className="!py-3 !text-base">
+            <Boton variante="secundario" ancho disabled={ocupado} onClick={() => setPaso((p) => p - 1)} className="!py-3 !text-base sm:!w-auto sm:min-w-[9rem]">
               Anterior
             </Boton>
           )}
         </div>
       </form>
+      </div>
+      </div>
     </MarcoPortal>
   );
 }

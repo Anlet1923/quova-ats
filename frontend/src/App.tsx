@@ -7,7 +7,9 @@ import Dashboard from './pages/Dashboard';
 import Vacantes from './pages/Vacantes';
 import NuevaVacante from './pages/NuevaVacante';
 import Pipeline from './pages/Pipeline';
-import Proximamente from './pages/Proximamente';
+import Entrevistas from './pages/Entrevistas';
+import Tiendas from './pages/Tiendas';
+import Configuracion from './pages/Configuracion';
 import { NoEncontrado } from './pages/Avisos';
 import Postular from './portal/Postular';
 import VacantesPublicas from './portal/VacantesPublicas';
@@ -43,11 +45,10 @@ export default function App() {
         <Route path="/vacantes" element={<Vacantes />} />
         <Route path="/vacantes/nueva" element={<RutaNuevaVacante />} />
         <Route path="/pipeline" element={<Pipeline />} />
-        <Route path="/entrevistas" element={<Proximamente modulo="entrevistas" />} />
-        <Route path="/banco-talento" element={<Proximamente modulo="banco-talento" />} />
-        <Route path="/reportes" element={<Proximamente modulo="reportes" />} />
-        <Route path="/tiendas" element={<Proximamente modulo="tiendas" />} />
-        <Route path="/configuracion" element={<Proximamente modulo="configuracion" />} />
+        {/* Módulos con datos de muestra: todavía no consultan el backend */}
+        <Route path="/entrevistas" element={<Entrevistas />} />
+        <Route path="/tiendas" element={<Tiendas />} />
+        <Route path="/configuracion" element={<Configuracion />} />
         <Route path="*" element={<NoEncontrado />} />
       </Route>
     </Routes>

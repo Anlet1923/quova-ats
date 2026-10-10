@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Ban, Briefcase, CircleCheck, Clock, Minus, Users, t
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api, mensajeDe } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useColoresGrafico } from '../lib/tema';
 import { PUEDE_GESTIONAR_VACANTES, type Dashboard as Datos, type Tarjeta } from '../lib/tipos';
 import { ErrorDeCarga, Esqueleto, EstadoVacio } from '../components/ui';
 
@@ -27,24 +28,33 @@ function TarjetaIndicador({ tarjeta }: { tarjeta: Tarjeta }) {
   const Flecha = tarjeta.favorable == null ? Minus : sube ? ArrowUp : ArrowDown;
   const lectura = tarjeta.favorable == null ? '' : tarjeta.favorable ? 'Favorable' : 'Desfavorable';
   return (
-    <article className="tarjeta p-5" data-testid={`tarjeta-${tarjeta.clave}`}>
-      <span className={`flex h-10 w-10 items-center justify-center rounded-lg ${clase}`}>
-        <Icono className="h-5 w-5" aria-hidden />
-      </span>
-      <p className="mt-4 text-3xl font-bold tracking-tight text-slate-900">{tarjeta.valor}</p>
-      <h3 className="mt-1 text-sm text-slate-500">{tarjeta.titulo}</h3>
-      <p className={`mt-3 flex flex-wrap items-center gap-x-1 text-xs font-medium ${tono}`}>
-        <Flecha className="h-3.5 w-3.5" aria-hidden />
-        <span>{tarjeta.variacion}</span>
-        {lectura && <span className="font-semibold">· {lectura}</span>}
-      </p>
-      <p className="mt-0.5 text-xs text-slate-400">{tarjeta.detalle}</p>
+    <article
+      className="tarjeta group flex flex-col p-5 transition duration-200 hover:border-primario/40 hover:shadow-lg hover:shadow-primario/10 motion-safe:hover:-translate-y-1"
+      data-testid={`tarjeta-${tarjeta.clave}`}
+    >
+      {/* El título reserva dos líneas para que la cifra quede a la misma altura en todas las tarjetas */}
+      <div className="flex min-h-[2.75rem] items-start justify-between gap-3">
+        <h3 className="font-sans text-sm font-medium leading-snug text-slate-500">{tarjeta.titulo}</h3>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 motion-safe:group-hover:scale-110 ${clase}`}>
+          <Icono className="h-[18px] w-[18px]" aria-hidden />
+        </span>
+      </div>
+      <p className="mt-2 font-titulo text-4xl font-semibold tracking-tight text-slate-900">{tarjeta.valor}</p>
+      <div className="mt-auto border-t border-slate-100 pt-3">
+        <p className={`flex flex-wrap items-center gap-x-1 text-xs font-medium ${tono}`}>
+          <Flecha className="h-3.5 w-3.5" aria-hidden />
+          <span>{tarjeta.variacion}</span>
+          {lectura && <span className="font-semibold">· {lectura}</span>}
+        </p>
+        <p className="mt-0.5 text-xs text-slate-400">{tarjeta.detalle}</p>
+      </div>
     </article>
   );
 }
 
 export default function Dashboard() {
   const { usuario, tieneRol } = useAuth();
+  const { grafico, estiloTooltip } = useColoresGrafico();
   const [datos, setDatos] = useState<Datos | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,8 +112,8 @@ export default function Dashboard() {
       </section>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-3">
-        <section className="tarjeta p-5 xl:col-span-2" aria-label="Candidatos por etapa">
-          <h3 className="text-base font-semibold text-slate-900">Candidatos por etapa</h3>
+        <section className="tarjeta p-5 transition-shadow duration-200 hover:shadow-md xl:col-span-2" aria-label="Candidatos por etapa">
+          <h3 className="text-lg font-semibold text-slate-900">Candidatos por etapa</h3>
           <p className="text-xs text-slate-500">{totalCandidatos} candidatos · en el orden del pipeline</p>
           {totalCandidatos === 0 ? (
             <EstadoVacio
@@ -122,11 +132,11 @@ export default function Dashboard() {
             <div className="mt-4 h-72" data-testid="grafico-etapas">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={datos.candidatosPorEtapa} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                  <CartesianGrid vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="nombre" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#64748B' }} interval={0} />
+                  <CartesianGrid vertical={false} stroke={grafico.rejilla} />
+                  <XAxis dataKey="nombre" tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: grafico.eje }} interval={0} />
                   <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 12, fill: '#94A3B8' }} />
-                  <Tooltip cursor={{ fill: '#F1F5F9' }} formatter={(valor) => [`${valor} candidatos`, 'Total']} />
-                  <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={56} label={{ position: 'top', fontSize: 12, fill: '#334155' }} isAnimationActive={false}>
+                  <Tooltip cursor={{ fill: grafico.cursor }} formatter={(valor) => [`${valor} candidatos`, 'Total']} {...estiloTooltip} />
+                  <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={56} label={{ position: 'top', fontSize: 12, fill: grafico.valor }} isAnimationActive={false}>
                     {datos.candidatosPorEtapa.map((s, i) => (
                       <Cell key={s.nombre} fill={COLOR_ETAPA[i % COLOR_ETAPA.length]} />
                     ))}
@@ -137,8 +147,8 @@ export default function Dashboard() {
           )}
         </section>
 
-        <section className="tarjeta p-5" aria-label="Vacantes por tienda">
-          <h3 className="text-base font-semibold text-slate-900">Vacantes por tienda</h3>
+        <section className="tarjeta p-5 transition-shadow duration-200 hover:shadow-md" aria-label="Vacantes por tienda">
+          <h3 className="text-lg font-semibold text-slate-900">Vacantes por tienda</h3>
           <p className="text-xs text-slate-500">
             {totalVacantes} vacantes abiertas · {datos.vacantesPorTienda.length} sedes activas
           </p>
@@ -146,15 +156,19 @@ export default function Dashboard() {
             <EstadoVacio icono={Briefcase} titulo="Sin vacantes abiertas" texto="Publica una vacante para empezar a recibir postulaciones." />
           ) : (
             <>
-              <div className="mt-2 h-48" data-testid="grafico-tiendas">
+              <div className="relative mt-2 h-48" data-testid="grafico-tiendas">
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center leading-tight" aria-hidden>
+                  <span className="font-titulo text-3xl font-semibold text-slate-900">{totalVacantes}</span>
+                  <span className="text-[11px] text-slate-500">abiertas</span>
+                </div>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={tiendasConVacantes} dataKey="total" nameKey="nombre" innerRadius={50} outerRadius={78} paddingAngle={3} isAnimationActive={false}>
+                    <Pie data={tiendasConVacantes} dataKey="total" nameKey="nombre" innerRadius={54} outerRadius={78} paddingAngle={3} stroke={grafico.superficie} isAnimationActive={false}>
                       {tiendasConVacantes.map((s) => (
                         <Cell key={s.nombre} fill={COLOR_TIENDA[datos.vacantesPorTienda.findIndex((t) => t.nombre === s.nombre) % COLOR_TIENDA.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(valor, nombre) => [`${valor} vacantes`, nombre]} />
+                    <Tooltip formatter={(valor, nombre) => [`${valor} vacantes`, nombre]} {...estiloTooltip} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

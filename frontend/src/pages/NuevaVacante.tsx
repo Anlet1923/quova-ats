@@ -23,12 +23,7 @@ import { SinAcceso } from './Avisos';
 const PASOS = ['Seleccionar cargo', 'Completar información', 'Publicar'];
 const TURNOS: Turno[] = ['MANANA', 'TARDE', 'ROTATIVO', 'FIN_DE_SEMANA'];
 
-const ESTILO_CARGO: { icono: LucideIcon; clase: string; texto: string }[] = [
-  { icono: ShoppingBag, clase: 'bg-blue-50 text-blue-600', texto: 'text-blue-600' },
-  { icono: CreditCard, clase: 'bg-cyan-50 text-cyan-600', texto: 'text-cyan-700' },
-  { icono: Home, clase: 'bg-violet-50 text-violet-600', texto: 'text-violet-600' },
-  { icono: Package, clase: 'bg-emerald-50 text-emerald-600', texto: 'text-emerald-700' },
-];
+const ESTILO_CARGO: { icono: LucideIcon }[] = [{ icono: ShoppingBag }, { icono: CreditCard }, { icono: Home }, { icono: Package }];
 
 interface Formulario {
   tiendaId: string;
@@ -260,16 +255,15 @@ export default function NuevaVacante() {
                   type="button"
                   onClick={() => elegirCargo(c)}
                   aria-pressed={elegido}
-                  className={`tarjeta flex items-start gap-4 p-5 text-left transition hover:border-primario hover:shadow-md ${elegido ? 'border-primario ring-1 ring-primario' : ''}`}
+                  className={`tarjeta group flex items-start gap-4 p-5 text-left transition duration-200 hover:border-primario hover:shadow-md motion-safe:hover:-translate-y-0.5 ${elegido ? 'border-primario ring-1 ring-primario' : ''}`}
                 >
-                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${estilo.clase}`}>
-                    <estilo.icono className="h-6 w-6" aria-hidden />
-                  </span>
+                  {/* Ícono suelto y un solo color de marca, sin recuadros de colores */}
+                  <estilo.icono className="mt-0.5 h-7 w-7 shrink-0 text-primario" strokeWidth={1.75} aria-hidden />
                   <span>
-                    <span className="block text-base font-semibold text-slate-900">{c.nombre}</span>
+                    <span className="block font-titulo text-lg font-semibold text-slate-900">{c.nombre}</span>
                     <span className="mt-0.5 line-clamp-2 block text-sm text-slate-500">{c.descripcion}</span>
-                    <span className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold ${estilo.texto}`}>
-                      Salario base: {soles(c.salarioBase)}/mes <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primario">
+                      Salario base: {soles(c.salarioBase)}/mes <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
                     </span>
                   </span>
                 </button>

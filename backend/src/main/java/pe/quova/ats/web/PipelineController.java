@@ -18,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import pe.quova.ats.dto.Dtos.CandidatoDto;
 import pe.quova.ats.dto.Dtos.DashboardDto;
+import pe.quova.ats.dto.Dtos.ReportesDto;
 import pe.quova.ats.dto.Dtos.DescartarRequest;
 import pe.quova.ats.dto.Dtos.HistorialDto;
 import pe.quova.ats.dto.Dtos.MoverRequest;
@@ -70,6 +71,12 @@ public class PipelineController {
 	@Operation(summary = "Historial de cambios de etapa del candidato")
 	public List<HistorialDto> historial(@PathVariable Long id) {
 		return pipeline.historial(id);
+	}
+
+	@GetMapping("/reportes")
+	@Operation(summary = "Indicadores por fuente, cargo y tienda")
+	public ReportesDto reportes(@AuthenticationPrincipal UsuarioActual u) {
+		return dashboard.reportes(u);
 	}
 
 	@GetMapping("/dashboard")

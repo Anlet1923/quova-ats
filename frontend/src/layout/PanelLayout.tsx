@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Archive,
+  BarChart3,
   Bell,
   Briefcase,
   CalendarDays,
@@ -40,6 +41,7 @@ const MENU_PRINCIPAL: Item[] = [
   { ruta: '/pipeline', nombre: 'Pipeline', icono: Kanban, contador: 'candidatosActivos' },
   { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays },
   { ruta: '/banco', nombre: 'Banco de talento', icono: Archive, roles: ['RECLUTADOR', 'ADMIN'] },
+  { ruta: '/reportes', nombre: 'Reportes', icono: BarChart3, roles: ['RECLUTADOR', 'ADMIN', 'GERENTE_REGIONAL', 'JEFE_TIENDA'] },
 ];
 
 const MENU_SISTEMA: Item[] = [
@@ -54,6 +56,7 @@ const TITULOS: Record<string, [string, string]> = {
   '/pipeline': ['Pipeline de candidatos', 'Tablero kanban por etapa · arrastra las tarjetas o usa «Avanzar»'],
   '/entrevistas': ['Calendario de entrevistas', 'Agenda y seguimiento de entrevistas por tienda'],
   '/banco': ['Banco de talento', 'Candidatos guardados al descartarlos, listos para otra vacante'],
+  '/reportes': ['Reportes', 'Efectividad por fuente y tiempo de contratación por cargo y tienda'],
   '/tiendas': ['Gestión de tiendas', 'Administra sedes, encargados y cuotas de personal'],
   '/configuracion': ['Configuración', 'Usuarios, roles, notificaciones y parámetros del sistema'],
 };

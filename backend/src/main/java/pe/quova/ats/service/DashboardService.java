@@ -3,6 +3,8 @@ package pe.quova.ats.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import pe.quova.ats.dto.Dtos.DashboardDto;
+import pe.quova.ats.dto.Dtos.ReporteFilaDto;
+import pe.quova.ats.dto.Dtos.ReportesDto;
 import pe.quova.ats.dto.Dtos.SerieDto;
 import pe.quova.ats.dto.Dtos.TarjetaDto;
 import pe.quova.ats.model.Candidato;
 import pe.quova.ats.model.Enums.EstadoVacante;
+import pe.quova.ats.model.Enums.Fuente;
 import pe.quova.ats.model.Etapa;
 import pe.quova.ats.model.HistorialEtapa;
 import pe.quova.ats.model.Tienda;
@@ -113,6 +118,80 @@ public class DashboardService {
 				.toList();
 
 		return new DashboardDto(tarjetas, candidatosPorEtapa, vacantesPorTienda, "Últimos 30 días");
+	}
+
+	@Transactional(readOnly = true)
+	public ReportesDto reportes(UsuarioActual u) {
+		Long tienda = u.tiendaRestringida();
+		List<Vacante> vs = vacantes.buscarTodasConDetalle().stream()
+				.filter(v -> tienda == null || esDeTienda(v, tienda)).toList();
+		List<Candidato> cs = candidatos.buscarTodosConDetalle().stream()
+				.filter(c -> tienda == null || esDeTienda(c.getVacante(), tienda)).toList();
+		List<HistorialEtapa> contrataciones = historial.buscarPorEtapaDestino(Etapa.CONTRATADO).stream()
+				.filter(h -> tienda == null || esDeTienda(h.getCandidato().getVacante(), tienda)).toList();
+
+		Map<String, List<Double>> diasCargo = new HashMap<>();
+		Map<String, List<Double>> diasTienda = new HashMap<>();
+		for (HistorialEtapa h : contrataciones) {
+			Vacante v = h.getCandidato().getVacante();
+			double dias = Duration.between(h.getCandidato().getCreadoEn(), h.getFecha()).toHours() / 24.0;
+			diasCargo.computeIfAbsent(v.getCargo().getNombre(), k -> new ArrayList<>()).add(dias);
+			if (v.getTienda() != null) {
+				diasTienda.computeIfAbsent(v.getTienda().getNombre(), k -> new ArrayList<>()).add(dias);
+			}
+		}
+
+		List<ReporteFilaDto> porFuente = new ArrayList<>();
+		for (Fuente fuente : Fuente.values()) {
+			List<Candidato> grupo = cs.stream().filter(c -> c.getFuente() == fuente).toList();
+			porFuente.add(new ReporteFilaDto(fuente.name(), grupo.size(), contratados(grupo), null, null));
+		}
+
+		Map<String, Long> abiertas = new LinkedHashMap<>();
+		tiendas.findAllByOrderByNombreAsc().stream().filter(Tienda::isActiva)
+				.filter(t -> tienda == null || t.getId().equals(tienda))
+				.forEach(t -> abiertas.put(t.getNombre(), vs.stream()
+						.filter(v -> v.getEstado() == EstadoVacante.ABIERTA && esDeTienda(v, t.getId())).count()));
+
+		return new ReportesDto(porFuente, filas(cs, c -> c.getVacante().getCargo().getNombre(), diasCargo, Map.of()),
+				filas(cs, c -> c.getVacante().getTienda() != null ? c.getVacante().getTienda().getNombre() : null,
+						diasTienda, abiertas));
+	}
+
+	private static List<ReporteFilaDto> filas(List<Candidato> cs, java.util.function.Function<Candidato, String> clave,
+			Map<String, List<Double>> dias, Map<String, Long> abiertas) {
+		Map<String, long[]> conteo = new LinkedHashMap<>();
+		for (String nombre : abiertas.keySet()) {
+			conteo.put(nombre, new long[] { 0, 0 });
+		}
+		for (Candidato c : cs) {
+			String nombre = clave.apply(c);
+			if (nombre == null) {
+				continue;
+			}
+			long[] n = conteo.computeIfAbsent(nombre, k -> new long[] { 0, 0 });
+			n[0]++;
+			if (c.getEtapa() == Etapa.CONTRATADO) {
+				n[1]++;
+			}
+		}
+		return conteo.entrySet().stream()
+				.sorted(Comparator.<Map.Entry<String, long[]>>comparingLong(e -> e.getValue()[0]).reversed()
+						.thenComparing(Map.Entry::getKey))
+				.map(e -> new ReporteFilaDto(e.getKey(), e.getValue()[0], e.getValue()[1], promedio(dias.get(e.getKey())),
+						abiertas.get(e.getKey())))
+				.toList();
+	}
+
+	private static long contratados(List<Candidato> grupo) {
+		return grupo.stream().filter(c -> c.getEtapa() == Etapa.CONTRATADO).count();
+	}
+
+	private static Long promedio(List<Double> dias) {
+		if (dias == null || dias.isEmpty()) {
+			return null;
+		}
+		return Math.round(dias.stream().mapToDouble(Double::doubleValue).average().orElse(0));
 	}
 
 	/**

@@ -214,6 +214,20 @@ class ReglasDeNegocioTest {
 	// ---------- Seguridad: bloqueo tras 5 intentos ----------
 
 	@Test
+	@DisplayName("Los reportes agrupan por fuente, cargo y tienda; el jefe solo ve su sede")
+	void reportesPorFuenteCargoYTienda() throws Exception {
+		mvc.perform(get("/api/reportes").header("Authorization", iniciarSesion("gerente@quova.pe")))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.porFuente[?(@.nombre=='WEB_QUOVA')].postulaciones").isNotEmpty())
+				.andExpect(jsonPath("$.porCargo[?(@.nombre=='Vendedor/a')].postulaciones").isNotEmpty())
+				.andExpect(jsonPath("$.porTienda[?(@.nombre=='Miraflores')].vacantesAbiertas").isNotEmpty());
+
+		mvc.perform(get("/api/reportes").header("Authorization", iniciarSesion("jefe.miraflores@quova.pe")))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.porTienda.length()").value(1))
+				.andExpect(jsonPath("$.porTienda[0].nombre").value("Miraflores"));
+	}
+
+	@Test
 	@DisplayName("Tras 5 intentos fallidos la cuenta se bloquea 15 minutos (423), incluso con la contraseña correcta")
 	void bloqueoTrasCincoIntentos() throws Exception {
 		for (int intento = 1; intento <= 4; intento++) {

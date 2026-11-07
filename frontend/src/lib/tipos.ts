@@ -131,6 +131,20 @@ export interface Serie {
   total: number;
 }
 
+export interface ReporteFila {
+  nombre: string;
+  postulaciones: number;
+  contratados: number;
+  dias: number | null;
+  vacantesAbiertas: number | null;
+}
+
+export interface Reportes {
+  porFuente: ReporteFila[];
+  porCargo: ReporteFila[];
+  porTienda: ReporteFila[];
+}
+
 export interface Dashboard {
   tarjetas: Tarjeta[];
   candidatosPorEtapa: Serie[];

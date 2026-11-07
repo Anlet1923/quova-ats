@@ -201,4 +201,10 @@ public final class Dtos {
 	public record DashboardDto(List<TarjetaDto> tarjetas, List<SerieDto> candidatosPorEtapa,
 			List<SerieDto> vacantesPorTienda, String periodo) {
 	}
+
+	public record ReporteFilaDto(String nombre, long postulaciones, long contratados, Long dias, Long vacantesAbiertas) {
+	}
+
+	public record ReportesDto(List<ReporteFilaDto> porFuente, List<ReporteFilaDto> porCargo, List<ReporteFilaDto> porTienda) {
+	}
 }

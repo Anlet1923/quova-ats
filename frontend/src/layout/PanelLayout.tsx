@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { ENTREVISTAS } from '../lib/demo';
 import { useTema } from '../lib/tema';
 import { ETIQUETA_ROL, iniciales, PUEDE_GESTIONAR_VACANTES, type Dashboard, type Rol } from '../lib/tipos';
 
@@ -38,7 +37,7 @@ const MENU_PRINCIPAL: Item[] = [
   { ruta: '/dashboard', nombre: 'Dashboard', icono: LayoutGrid },
   { ruta: '/vacantes', nombre: 'Vacantes', icono: Briefcase, contador: 'vacantesAbiertas' },
   { ruta: '/pipeline', nombre: 'Pipeline', icono: Kanban, contador: 'candidatosActivos' },
-  { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays, fijo: ENTREVISTAS.filter((e) => e.estado === 'Pendiente').length },
+  { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays },
 ];
 
 const MENU_SISTEMA: Item[] = [

@@ -33,6 +33,22 @@ export interface Tienda {
   vacantesAbiertas: number;
 }
 
+export type EstadoEntrevista = 'PENDIENTE' | 'COMPLETADA';
+export type ResultadoEntrevista = 'APROBADO' | 'EN_ESPERA';
+
+export interface Entrevista {
+  id: number;
+  candidatoId: number;
+  candidato: string;
+  cargo: string;
+  tiendaId: number | null;
+  tienda: string | null;
+  fechaHora: string;
+  estado: EstadoEntrevista;
+  resultado: ResultadoEntrevista | null;
+  estrellas: number | null;
+}
+
 export interface Cargo {
   id: number;
   nombre: string;

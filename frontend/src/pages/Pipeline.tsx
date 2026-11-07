@@ -23,14 +23,13 @@ import {
 import { Boton, Cargando, ErrorDeCarga, Esqueleto, EstadoVacio, Etiqueta, Modal, type Tono } from '../components/ui';
 
 const CABECERA: Record<Etapa, string> = {
-  // En modo oscuro la progresión se conserva con tintes translúcidos en vez de azules claros
-  NUEVO: 'bg-blue-100 text-blue-900 dark:bg-blue-500/15 dark:text-blue-200',
-  PRESELECCIONADO: 'bg-blue-300 text-blue-950 dark:bg-blue-500/25 dark:text-blue-100',
-  ENTREVISTA: 'bg-blue-500 text-white dark:bg-blue-600/40',
-  PRUEBA: 'bg-blue-600 text-white dark:bg-blue-600/60',
-  OFERTA: 'bg-blue-800 text-white dark:bg-blue-700/80',
-  CONTRATADO: 'bg-emerald-600 text-white dark:bg-emerald-600/50',
-  DESCARTADO: 'bg-slate-400 text-white dark:bg-slate-200 dark:text-slate-700',
+  NUEVO: 'bg-blue-700 text-white',
+  PRESELECCIONADO: 'bg-cyan-700 text-white',
+  ENTREVISTA: 'bg-violet-700 text-white',
+  PRUEBA: 'bg-amber-600 text-white',
+  OFERTA: 'bg-indigo-800 text-white',
+  CONTRATADO: 'bg-emerald-700 text-white',
+  DESCARTADO: 'bg-slate-600 text-white',
 };
 
 const AVATAR = ['bg-blue-700', 'bg-emerald-700', 'bg-violet-700', 'bg-cyan-700', 'bg-amber-700', 'bg-[#334155]'];

@@ -273,6 +273,40 @@ class ReglasDeNegocioTest {
 	}
 
 	@Test
+	@DisplayName("El reclutador agenda la entrevista y solo el jefe de esa tienda la evalúa")
+	void agendaYEvaluacionDeEntrevista() throws Exception {
+		String recluta = iniciarSesion("reclutador@quova.pe");
+		String listado = mvc.perform(get("/api/candidatos").header("Authorization", recluta)).andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		long fiorella = 0;
+		for (var nodo : json.readTree(listado)) {
+			if ("Fiorella Gutiérrez Paz".equals(nodo.get("nombre").asText())) {
+				fiorella = nodo.get("id").asLong();
+			}
+		}
+
+		String cita = mvc
+				.perform(post("/api/entrevistas").header("Authorization", recluta).contentType(MediaType.APPLICATION_JSON)
+						.content("{\"candidatoId\":" + fiorella + ",\"fechaHora\":\"2026-11-10T10:00:00\"}"))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.estado").value("PENDIENTE")).andReturn()
+				.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		long id = json.readTree(cita).get("id").asLong();
+
+		mvc.perform(post("/api/entrevistas").header("Authorization", recluta).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"candidatoId\":" + fiorella + ",\"fechaHora\":\"2026-11-11T10:00:00\"}"))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("ENTREVISTA_PENDIENTE"));
+
+		mvc.perform(post("/api/entrevistas/{id}/evaluar", id).header("Authorization", recluta)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"resultado\":\"APROBADO\",\"estrellas\":5}"))
+				.andExpect(status().isForbidden());
+
+		mvc.perform(post("/api/entrevistas/{id}/evaluar", id).header("Authorization", iniciarSesion("jefe.miraflores@quova.pe"))
+				.contentType(MediaType.APPLICATION_JSON).content("{\"resultado\":\"APROBADO\",\"estrellas\":5}"))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("COMPLETADA"))
+				.andExpect(jsonPath("$.resultado").value("APROBADO"));
+	}
+
+	@Test
 	@DisplayName("Un usuario inactivo no puede entrar (403) y un correo no corporativo se rechaza (400)")
 	void usuarioInactivoYCorreoNoCorporativo() throws Exception {
 		login("inactivo@quova.pe", DataLoader.CLAVE_DEMO).andExpect(status().isForbidden())

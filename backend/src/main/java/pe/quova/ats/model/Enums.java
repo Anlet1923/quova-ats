@@ -37,6 +37,14 @@ public final class Enums {
 		}
 	}
 
+	public enum EstadoEntrevista {
+		PENDIENTE, COMPLETADA
+	}
+
+	public enum ResultadoEntrevista {
+		APROBADO, EN_ESPERA
+	}
+
 	public enum MotivoDescarte {
 		NO_CUMPLE_PERFIL(false), NO_DISPONIBILIDAD_TURNO(false), PRETENSION_SALARIAL(false),
 		NO_ASISTIO_ENTREVISTA(true), DESISTIO(true), NO_RESPONDE(true), OTRO(false);

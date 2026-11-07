@@ -9,6 +9,7 @@ import java.util.Set;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -17,9 +18,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import pe.quova.ats.model.Enums.DisponibilidadInicio;
+import pe.quova.ats.model.Enums.EstadoEntrevista;
 import pe.quova.ats.model.Enums.EstadoVacante;
 import pe.quova.ats.model.Enums.Fuente;
 import pe.quova.ats.model.Enums.MotivoDescarte;
+import pe.quova.ats.model.Enums.ResultadoEntrevista;
 import pe.quova.ats.model.Enums.Rol;
 import pe.quova.ats.model.Enums.Turno;
 import pe.quova.ats.model.Etapa;
@@ -167,6 +170,22 @@ public final class Dtos {
 
 	public record HistorialDto(LocalDateTime fecha, Etapa etapaOrigen, Etapa etapaDestino, String usuario,
 			String comentario) {
+	}
+
+	public record EntrevistaDto(Long id, Long candidatoId, String candidato, String cargo, Long tiendaId, String tienda,
+			LocalDateTime fechaHora, EstadoEntrevista estado, ResultadoEntrevista resultado, Integer estrellas) {
+	}
+
+	public record EntrevistaRequest(
+			@NotNull(message = "Elige el candidato.") Long candidatoId,
+			@NotNull(message = "Elige la fecha y la hora.") LocalDateTime fechaHora) {
+	}
+
+	public record EvaluacionRequest(
+			@NotNull(message = "Elige el resultado.") ResultadoEntrevista resultado,
+			@NotNull(message = "Indica de 1 a 5 estrellas.")
+			@Min(value = 1, message = "Indica de 1 a 5 estrellas.")
+			@Max(value = 5, message = "Indica de 1 a 5 estrellas.") Integer estrellas) {
 	}
 
 	// ---------- Dashboard ----------

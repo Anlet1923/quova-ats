@@ -1,33 +1,3 @@
-// Datos de muestra de los módulos que todavía no se conectan al backend.
-// Son fijos: nada de este archivo se lee ni se guarda en la base de datos.
-export interface EntrevistaDemo {
-  /** Día de la semana en curso: 0 = lunes … 4 = viernes. */
-  dia: number;
-  hora: string;
-  candidato: string;
-  cargo: string;
-  tienda: string;
-  estado: 'Pendiente' | 'Completada';
-  /** Evaluación del jefe de tienda; solo en entrevistas completadas. */
-  resultado?: 'Aprobado' | 'En espera';
-  estrellas?: number;
-}
-
-export const HORAS_ENTREVISTA = ['09:00', '10:00', '11:00', '15:00', '16:00'];
-
-export const ENTREVISTAS: EntrevistaDemo[] = [
-  { dia: 0, hora: '09:00', candidato: 'Kevin Ramos Soto', cargo: 'Cajero/a', tienda: 'San Isidro', estado: 'Completada', resultado: 'Aprobado', estrellas: 5 },
-  { dia: 0, hora: '11:00', candidato: 'Bruno Vargas León', cargo: 'Encargado de local', tienda: 'Los Olivos', estado: 'Completada', resultado: 'En espera', estrellas: 3 },
-  { dia: 1, hora: '10:00', candidato: 'Fiorella Gutiérrez Paz', cargo: 'Vendedor/a', tienda: 'Miraflores', estado: 'Pendiente' },
-  { dia: 1, hora: '15:00', candidato: 'Mariana Flores Díaz', cargo: 'Vendedor/a', tienda: 'La Molina', estado: 'Pendiente' },
-  { dia: 2, hora: '09:00', candidato: 'Andrea Salazar Luna', cargo: 'Vendedor/a', tienda: 'Miraflores', estado: 'Pendiente' },
-  { dia: 2, hora: '11:00', candidato: 'Renzo Chávez Molina', cargo: 'Personal de almacén', tienda: 'Surco', estado: 'Pendiente' },
-  { dia: 3, hora: '10:00', candidato: 'Sofía Navarro Cruz', cargo: 'Personal de almacén', tienda: 'Surco', estado: 'Pendiente' },
-  { dia: 3, hora: '16:00', candidato: 'Luis Alberto Poma Ccori', cargo: 'Vendedor/a', tienda: 'Surco', estado: 'Pendiente' },
-  { dia: 4, hora: '09:00', candidato: 'Valeria Castillo Ríos', cargo: 'Cajero/a', tienda: 'Miraflores', estado: 'Pendiente' },
-  { dia: 4, hora: '15:00', candidato: 'Camila Torres Vega', cargo: 'Vendedor/a', tienda: 'La Molina', estado: 'Pendiente' },
-];
-
 export const PLANTILLAS_DEMO: { nombre: string; canal: string; momento: string; mensaje: string }[] = [
   {
     nombre: 'Confirmación de postulación',

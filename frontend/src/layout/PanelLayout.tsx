@@ -67,6 +67,7 @@ export default function PanelLayout() {
   const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [avisosAbiertos, setAvisosAbiertos] = useState(false);
+  const [campana, setCampana] = useState<{ id: number; mensaje: string; creadoEn: string }[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [contadores, setContadores] = useState<Record<string, string>>({});
   const { oscuro, alternar } = useTema();
@@ -84,7 +85,16 @@ export default function PanelLayout() {
     api<Dashboard>('/dashboard')
       .then((d) => setContadores(Object.fromEntries(d.tarjetas.map((t) => [t.clave, t.valor]))))
       .catch(() => undefined);
+    api<{ id: number; mensaje: string; creadoEn: string }[]>('/avisos')
+      .then(setCampana)
+      .catch(() => undefined);
   }, [ubicacion.pathname]);
+
+  const cargarAvisos = () => {
+    api<{ id: number; mensaje: string; creadoEn: string }[]>('/avisos')
+      .then(setCampana)
+      .catch(() => undefined);
+  };
 
   if (!usuario) return null;
 
@@ -209,19 +219,36 @@ export default function PanelLayout() {
         <div className="relative">
           <button
             type="button"
-            onClick={() => setAvisosAbiertos((v) => !v)}
-            className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
+            onClick={() => {
+              setAvisosAbiertos((v) => !v);
+              cargarAvisos();
+            }}
+            className="relative rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"
             aria-label="Notificaciones"
             aria-expanded={avisosAbiertos}
           >
             <Bell className="h-[18px] w-[18px]" />
+            {campana.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primario px-1 text-[10px] font-bold text-white">
+                {campana.length}
+              </span>
+            )}
           </button>
           {avisosAbiertos && (
-            <div className="tarjeta absolute right-0 mt-2 w-72 p-4 text-sm shadow-lg">
+            <div className="tarjeta absolute right-0 z-20 mt-2 w-80 p-4 text-sm shadow-lg">
               <p className="font-semibold text-slate-900">Notificaciones</p>
-              <p className="mt-1 text-slate-500">
-                Los avisos por correo y WhatsApp llegarán en el siguiente avance. <span className="font-semibold text-slate-600">Próximamente.</span>
-              </p>
+              {campana.length === 0 ? (
+                <p className="mt-2 text-slate-500">Todavía no hay avisos. Aparecen al postular, agendar, evaluar, contratar o descartar.</p>
+              ) : (
+                <ul className="mt-2 max-h-80 space-y-2 overflow-y-auto">
+                  {campana.map((a) => (
+                    <li key={a.id} className="rounded-lg bg-slate-50 px-3 py-2">
+                      <p className="text-slate-800">{a.mensaje}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{new Date(a.creadoEn).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </div>

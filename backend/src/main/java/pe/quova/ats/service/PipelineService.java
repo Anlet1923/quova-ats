@@ -30,6 +30,7 @@ public class PipelineService {
 	private final CandidatoRepository candidatos;
 	private final HistorialEtapaRepository historial;
 	private final UsuarioRepository usuarios;
+	private final AvisoService avisos;
 
 	@Transactional(readOnly = true)
 	public List<CandidatoDto> banco(String q, UsuarioActual u) {
@@ -102,6 +103,12 @@ public class PipelineService {
 				.usuario(usuarios.getReferenceById(u.id())).fecha(ahora).comentario(comentario).build());
 		c.setEtapa(destino);
 		c.setEtapaDesde(ahora);
+		Long tienda = c.getVacante().getTienda() != null ? c.getVacante().getTienda().getId() : null;
+		if (destino == Etapa.CONTRATADO) {
+			avisos.registrar(c.getNombre() + " fue contratado.", tienda);
+		} else if (destino == Etapa.DESCARTADO) {
+			avisos.registrar(c.getNombre() + " fue descartado.", tienda);
+		}
 	}
 
 	private Candidato buscar(Long id) {

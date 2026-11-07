@@ -40,13 +40,15 @@ public class PostulacionService {
 	private final VacanteRepository vacantes;
 	private final CandidatoRepository candidatos;
 	private final HistorialEtapaRepository historial;
+	private final AvisoService avisos;
 	private final Path directorioCv;
 
 	public PostulacionService(VacanteRepository vacantes, CandidatoRepository candidatos,
-			HistorialEtapaRepository historial, @Value("${quova.cv.directorio}") String directorioCv) {
+			HistorialEtapaRepository historial, AvisoService avisos, @Value("${quova.cv.directorio}") String directorioCv) {
 		this.vacantes = vacantes;
 		this.candidatos = candidatos;
 		this.historial = historial;
+		this.avisos = avisos;
 		this.directorioCv = Path.of(directorioCv);
 	}
 
@@ -115,6 +117,8 @@ public class PostulacionService {
 		candidatos.save(c);
 		historial.save(HistorialEtapa.builder().candidato(c).etapaDestino(Etapa.NUEVO).fecha(ahora)
 				.comentario("Postulación recibida por el portal").build());
+		avisos.registrar("Nueva postulación de " + c.getNombre() + " a " + v.getCargo().getNombre() + " en "
+				+ v.getTienda().getNombre() + ".", v.getTienda().getId());
 		return new PostulacionCreadaDto(c.getId(), c.getNombre(), v.getCargo().getNombre(),
 				v.getTienda().getNombre(), ahora);
 	}

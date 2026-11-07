@@ -199,6 +199,9 @@ class ReglasDeNegocioTest {
 				.andExpect(jsonPath("$.etapa").value("DESCARTADO"))
 				.andExpect(jsonPath("$.bancoTalento").value(true));
 
+		mvc.perform(get("/api/avisos").header("Authorization", token)).andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].mensaje").value(org.hamcrest.Matchers.containsString("Camila")));
+
 		// Un descartado ya no se puede mover
 		mvc.perform(get("/api/banco").param("q", "Henry").header("Authorization", iniciarSesion("reclutador@quova.pe")))
 				.andExpect(status().isOk()).andExpect(jsonPath("$[0].nombre").value("Henry Yupanqui Mamani"))

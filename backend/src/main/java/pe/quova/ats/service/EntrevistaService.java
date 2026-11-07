@@ -1,5 +1,6 @@
 package pe.quova.ats.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class EntrevistaService {
 
 	private final EntrevistaRepository entrevistas;
 	private final CandidatoRepository candidatos;
+	private final AvisoService avisos;
 
 	@Transactional(readOnly = true)
 	public List<EntrevistaDto> listar(UsuarioActual u) {
@@ -46,6 +48,8 @@ public class EntrevistaService {
 					"Este candidato ya tiene una entrevista pendiente.");
 		}
 		Entrevista e = entrevistas.save(Entrevista.builder().candidato(c).fechaHora(req.fechaHora()).build());
+		avisos.registrar("Entrevista agendada para " + c.getNombre() + " el "
+				+ req.fechaHora().format(DateTimeFormatter.ofPattern("dd/MM HH:mm")) + ".", tiendaDe(c.getVacante()));
 		return aDto(e);
 	}
 
@@ -62,11 +66,16 @@ public class EntrevistaService {
 		e.setEstado(EstadoEntrevista.COMPLETADA);
 		e.setResultado(req.resultado());
 		e.setEstrellas(req.estrellas());
+		String resultado = req.resultado() == pe.quova.ats.model.Enums.ResultadoEntrevista.APROBADO ? "Aprobado" : "En espera";
+		avisos.registrar("Evaluación de " + e.getCandidato().getNombre() + ": " + resultado + ".", tiendaDe(e));
 		return aDto(e);
 	}
 
 	private static Long tiendaDe(Entrevista e) {
-		Vacante v = e.getCandidato().getVacante();
+		return tiendaDe(e.getCandidato().getVacante());
+	}
+
+	private static Long tiendaDe(Vacante v) {
 		return v.getTienda() != null ? v.getTienda().getId() : null;
 	}
 

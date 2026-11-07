@@ -221,4 +221,7 @@ public final class Dtos {
 			@NotBlank(message = "Escribe el mensaje.")
 			@Size(max = 1000, message = "El mensaje admite hasta 1000 caracteres.") String mensaje) {
 	}
+
+	public record AvisoDto(Long id, String mensaje, java.time.LocalDateTime creadoEn) {
+	}
 }

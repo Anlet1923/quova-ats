@@ -37,6 +37,12 @@ public class PipelineController {
 	private final PipelineService pipeline;
 	private final DashboardService dashboard;
 
+	@GetMapping("/banco")
+	@Operation(summary = "Candidatos guardados en el banco de talento")
+	public List<CandidatoDto> banco(@RequestParam(required = false) String q, @AuthenticationPrincipal UsuarioActual u) {
+		return pipeline.banco(q, u);
+	}
+
 	@GetMapping("/candidatos")
 	@Operation(summary = "Candidatos del pipeline, con filtros por vacante y tienda")
 	public List<CandidatoDto> listar(@RequestParam(required = false) Long vacanteId,

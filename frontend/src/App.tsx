@@ -8,6 +8,7 @@ import Vacantes from './pages/Vacantes';
 import NuevaVacante from './pages/NuevaVacante';
 import Pipeline from './pages/Pipeline';
 import Entrevistas from './pages/Entrevistas';
+import Banco from './pages/Banco';
 import Tiendas from './pages/Tiendas';
 import Configuracion from './pages/Configuracion';
 import { NoEncontrado } from './pages/Avisos';
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/pipeline" element={<Pipeline />} />
         {/* Módulos con datos de muestra: todavía no consultan el backend */}
         <Route path="/entrevistas" element={<Entrevistas />} />
+        <Route path="/banco" element={<Banco />} />
         <Route path="/tiendas" element={<Tiendas />} />
         <Route path="/configuracion" element={<Configuracion />} />
         <Route path="*" element={<NoEncontrado />} />

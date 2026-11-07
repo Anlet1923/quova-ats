@@ -32,6 +32,20 @@ public class PipelineService {
 	private final UsuarioRepository usuarios;
 
 	@Transactional(readOnly = true)
+	public List<CandidatoDto> banco(String q, UsuarioActual u) {
+		String texto = q == null ? "" : q.trim().toLowerCase();
+		Long restringida = u.tiendaRestringida();
+		return candidatos.buscarTodosConDetalle().stream()
+				.filter(Candidato::isBancoTalento)
+				.filter(c -> restringida == null || esDeTienda(c.getVacante(), restringida))
+				.filter(c -> texto.isEmpty() || c.getNombre().toLowerCase().contains(texto)
+						|| c.getDni().contains(texto)
+						|| c.getVacante().getCargo().getNombre().toLowerCase().contains(texto))
+				.map(PipelineService::aDto)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
 	public List<CandidatoDto> listar(Long vacanteId, Long tiendaId, UsuarioActual u) {
 		Long restringida = u.tiendaRestringida();
 		return candidatos.buscarTodosConDetalle().stream()

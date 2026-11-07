@@ -200,6 +200,12 @@ class ReglasDeNegocioTest {
 				.andExpect(jsonPath("$.bancoTalento").value(true));
 
 		// Un descartado ya no se puede mover
+		mvc.perform(get("/api/banco").param("q", "Henry").header("Authorization", iniciarSesion("reclutador@quova.pe")))
+				.andExpect(status().isOk()).andExpect(jsonPath("$[0].nombre").value("Henry Yupanqui Mamani"))
+				.andExpect(jsonPath("$[0].bancoTalento").value(true));
+		mvc.perform(get("/api/banco").param("q", "Lucía").header("Authorization", iniciarSesion("reclutador@quova.pe")))
+				.andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+
 		mvc.perform(post("/api/candidatos/{id}/mover", camila.getId()).header("Authorization", token)
 				.contentType(MediaType.APPLICATION_JSON).content("{\"etapaDestino\":\"OFERTA\"}"))
 				.andExpect(status().isConflict());

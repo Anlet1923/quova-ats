@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState, type FormEvent } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
+  Archive,
   Bell,
   Briefcase,
   CalendarDays,
@@ -38,6 +39,7 @@ const MENU_PRINCIPAL: Item[] = [
   { ruta: '/vacantes', nombre: 'Vacantes', icono: Briefcase, contador: 'vacantesAbiertas' },
   { ruta: '/pipeline', nombre: 'Pipeline', icono: Kanban, contador: 'candidatosActivos' },
   { ruta: '/entrevistas', nombre: 'Cal. Entrevistas', icono: CalendarDays },
+  { ruta: '/banco', nombre: 'Banco de talento', icono: Archive, roles: ['RECLUTADOR', 'ADMIN'] },
 ];
 
 const MENU_SISTEMA: Item[] = [
@@ -51,6 +53,7 @@ const TITULOS: Record<string, [string, string]> = {
   '/vacantes/nueva': ['Crear vacante', 'Usa una plantilla por cargo para publicar rápido'],
   '/pipeline': ['Pipeline de candidatos', 'Tablero kanban por etapa · arrastra las tarjetas o usa «Avanzar»'],
   '/entrevistas': ['Calendario de entrevistas', 'Agenda y seguimiento de entrevistas por tienda'],
+  '/banco': ['Banco de talento', 'Candidatos guardados al descartarlos, listos para otra vacante'],
   '/tiendas': ['Gestión de tiendas', 'Administra sedes, encargados y cuotas de personal'],
   '/configuracion': ['Configuración', 'Usuarios, roles, notificaciones y parámetros del sistema'],
 };

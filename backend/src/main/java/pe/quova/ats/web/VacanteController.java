@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import pe.quova.ats.dto.Dtos.CargoDto;
-import pe.quova.ats.dto.Dtos.TiendaDto;
 import pe.quova.ats.dto.Dtos.VacanteDto;
 import pe.quova.ats.dto.Dtos.VacanteRequest;
 import pe.quova.ats.model.Enums.EstadoVacante;
@@ -35,12 +34,6 @@ public class VacanteController {
 	private static final String PUEDE_GESTIONAR = "hasAnyRole('RECLUTADOR','ADMIN')";
 
 	private final VacanteService vacantes;
-
-	@GetMapping("/tiendas")
-	@Operation(summary = "Catálogo de tiendas (activas e inactivas)")
-	public List<TiendaDto> tiendas() {
-		return vacantes.tiendas();
-	}
 
 	@GetMapping("/cargos")
 	@Operation(summary = "Cargos con salario base y plantilla")

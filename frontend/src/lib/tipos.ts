@@ -28,6 +28,8 @@ export interface Tienda {
   direccion: string;
   distrito: string;
   activa: boolean;
+  jefe: string | null;
+  vacantesAbiertas: number;
 }
 
 export interface Cargo {

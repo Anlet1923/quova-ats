@@ -221,6 +221,34 @@ class ReglasDeNegocioTest {
 	}
 
 	@Test
+	@DisplayName("Solo el admin crea tiendas y no se desactiva una sede con vacantes abiertas")
+	void gestionDeTiendas() throws Exception {
+		mvc.perform(post("/api/tiendas").header("Authorization", iniciarSesion("reclutador@quova.pe"))
+				.contentType(MediaType.APPLICATION_JSON).content("{\"nombre\":\"Barranco\",\"direccion\":\"Av. Grau 100\"}"))
+				.andExpect(status().isForbidden());
+
+		String admin = iniciarSesion("admin@quova.pe");
+		mvc.perform(post("/api/tiendas").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Barranco\",\"direccion\":\"Av. Grau 100\"}")).andExpect(status().isCreated())
+				.andExpect(jsonPath("$.nombre").value("Barranco")).andExpect(jsonPath("$.activa").value(true));
+
+		mvc.perform(post("/api/tiendas").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"barranco\",\"direccion\":\"Otra\"}")).andExpect(status().isConflict())
+				.andExpect(jsonPath("$.codigo").value("TIENDA_DUPLICADA"));
+
+		String listado = mvc.perform(get("/api/tiendas").header("Authorization", admin)).andExpect(status().isOk())
+				.andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		long miraflores = 0;
+		for (var nodo : json.readTree(listado)) {
+			if ("Miraflores".equals(nodo.get("nombre").asText())) {
+				miraflores = nodo.get("id").asLong();
+			}
+		}
+		mvc.perform(post("/api/tiendas/{id}/desactivar", miraflores).header("Authorization", admin))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("TIENDA_CON_VACANTES"));
+	}
+
+	@Test
 	@DisplayName("Un usuario inactivo no puede entrar (403) y un correo no corporativo se rechaza (400)")
 	void usuarioInactivoYCorreoNoCorporativo() throws Exception {
 		login("inactivo@quova.pe", DataLoader.CLAVE_DEMO).andExpect(status().isForbidden())

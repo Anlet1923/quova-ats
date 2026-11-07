@@ -30,23 +30,6 @@ export const ENTREVISTAS: EntrevistaDemo[] = [
   { dia: 4, hora: '15:00', candidato: 'Camila Torres Vega', cargo: 'Vendedor/a', tienda: 'La Molina', estado: 'Pendiente' },
 ];
 
-export interface TiendaDemo {
-  nombre: string;
-  direccion: string;
-  activa: boolean;
-  jefe: string | null;
-  vacantes: number;
-}
-
-export const TIENDAS: TiendaDemo[] = [
-  { nombre: 'Miraflores', direccion: 'Av. Larco 345', activa: true, jefe: 'Luis Paredes', vacantes: 2 },
-  { nombre: 'San Isidro', direccion: 'Av. Conquistadores 510', activa: true, jefe: 'Patricia Rojas', vacantes: 1 },
-  { nombre: 'Surco', direccion: 'Av. Javier Prado Este 4200, Jockey Plaza', activa: true, jefe: 'Jorge Salinas', vacantes: 2 },
-  { nombre: 'La Molina', direccion: 'Av. La Molina 1120', activa: true, jefe: 'Mónica Vega', vacantes: 1 },
-  { nombre: 'Los Olivos', direccion: 'Av. Alfredo Mendiola 3698', activa: true, jefe: 'César Huerta', vacantes: 1 },
-  { nombre: 'San Borja', direccion: 'Av. San Borja Sur 480', activa: false, jefe: null, vacantes: 0 },
-];
-
 export const USUARIOS_DEMO: { nombre: string; correo: string; rol: Rol; tienda: string | null; activo: boolean }[] = [
   { nombre: 'Ana Torres', correo: 'admin@quova.pe', rol: 'ADMIN', tienda: null, activo: true },
   { nombre: 'Rosa Villanueva', correo: 'gerente@quova.pe', rol: 'GERENTE_REGIONAL', tienda: null, activo: true },

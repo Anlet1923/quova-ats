@@ -9,4 +9,8 @@ import pe.quova.ats.model.Tienda;
 public interface TiendaRepository extends JpaRepository<Tienda, Long> {
 
 	List<Tienda> findAllByOrderByNombreAsc();
+
+	boolean existsByNombreIgnoreCase(String nombre);
+
+	boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
 }

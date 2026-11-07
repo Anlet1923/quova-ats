@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import pe.quova.ats.dto.Dtos.CargoDto;
-import pe.quova.ats.dto.Dtos.TiendaDto;
 import pe.quova.ats.dto.Dtos.VacanteDto;
 import pe.quova.ats.dto.Dtos.VacanteRequest;
 import pe.quova.ats.error.ApiException;
@@ -43,13 +42,6 @@ public class VacanteService {
 	private final TiendaRepository tiendas;
 	private final CandidatoRepository candidatos;
 	private final UsuarioRepository usuarios;
-
-	@Transactional(readOnly = true)
-	public List<TiendaDto> tiendas() {
-		return tiendas.findAllByOrderByNombreAsc().stream()
-				.map(t -> new TiendaDto(t.getId(), t.getNombre(), t.getDireccion(), t.getDistrito(), t.isActiva()))
-				.toList();
-	}
 
 	@Transactional(readOnly = true)
 	public List<CargoDto> cargos() {

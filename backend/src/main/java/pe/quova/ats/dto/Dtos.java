@@ -47,7 +47,14 @@ public final class Dtos {
 
 	// ---------- Catálogos ----------
 
-	public record TiendaDto(Long id, String nombre, String direccion, String distrito, boolean activa) {
+	public record TiendaDto(Long id, String nombre, String direccion, String distrito, boolean activa, String jefe,
+			long vacantesAbiertas) {
+	}
+
+	public record TiendaRequest(
+			@NotBlank(message = "Ingresa el nombre de la tienda.")
+			@Size(max = 80, message = "El nombre admite hasta 80 caracteres.") String nombre,
+			@Size(max = 160, message = "La dirección admite hasta 160 caracteres.") String direccion) {
 	}
 
 	public record CargoDto(Long id, String nombre, BigDecimal salarioBase, String descripcion, String requisitos) {

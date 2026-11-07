@@ -13,11 +13,15 @@ import pe.quova.ats.dto.Dtos.CargoRequest;
 import pe.quova.ats.dto.Dtos.UsuarioDto;
 import pe.quova.ats.dto.Dtos.UsuarioRequest;
 import pe.quova.ats.error.ApiException;
+import pe.quova.ats.dto.Dtos.PlantillaDto;
+import pe.quova.ats.dto.Dtos.PlantillaRequest;
 import pe.quova.ats.model.Cargo;
 import pe.quova.ats.model.Enums.Rol;
+import pe.quova.ats.model.Plantilla;
 import pe.quova.ats.model.Tienda;
 import pe.quova.ats.model.Usuario;
 import pe.quova.ats.repo.CargoRepository;
+import pe.quova.ats.repo.PlantillaRepository;
 import pe.quova.ats.repo.TiendaRepository;
 import pe.quova.ats.repo.UsuarioRepository;
 import pe.quova.ats.security.UsuarioActual;
@@ -29,6 +33,7 @@ public class ConfiguracionService {
 	private final UsuarioRepository usuarios;
 	private final CargoRepository cargos;
 	private final TiendaRepository tiendas;
+	private final PlantillaRepository plantillas;
 	private final PasswordEncoder encoder;
 
 	@Transactional(readOnly = true)
@@ -136,5 +141,44 @@ public class ConfiguracionService {
 	private static ApiException duplicadoCargo() {
 		return new ApiException(HttpStatus.CONFLICT, "CARGO_DUPLICADO", "Ya existe un cargo con ese nombre.")
 				.conError("nombre", "Ya existe un cargo con ese nombre.");
+	}
+
+	@Transactional(readOnly = true)
+	public List<PlantillaDto> plantillas() {
+		return plantillas.findAllByOrderByNombreAsc().stream().map(ConfiguracionService::aDto).toList();
+	}
+
+	@Transactional
+	public PlantillaDto crearPlantilla(PlantillaRequest req) {
+		String nombre = req.nombre().trim();
+		if (plantillas.existsByNombreIgnoreCase(nombre)) {
+			throw duplicadaPlantilla();
+		}
+		Plantilla p = plantillas.save(Plantilla.builder().nombre(nombre).canal(req.canal().trim()).momento(req.momento().trim())
+				.mensaje(req.mensaje().trim()).build());
+		return aDto(p);
+	}
+
+	@Transactional
+	public PlantillaDto actualizarPlantilla(Long id, PlantillaRequest req) {
+		Plantilla p = plantillas.findById(id).orElseThrow(() -> ApiException.noEncontrado("La plantilla no existe."));
+		String nombre = req.nombre().trim();
+		if (plantillas.existsByNombreIgnoreCaseAndIdNot(nombre, id)) {
+			throw duplicadaPlantilla();
+		}
+		p.setNombre(nombre);
+		p.setCanal(req.canal().trim());
+		p.setMomento(req.momento().trim());
+		p.setMensaje(req.mensaje().trim());
+		return aDto(p);
+	}
+
+	private static PlantillaDto aDto(Plantilla p) {
+		return new PlantillaDto(p.getId(), p.getNombre(), p.getCanal(), p.getMomento(), p.getMensaje());
+	}
+
+	private static ApiException duplicadaPlantilla() {
+		return new ApiException(HttpStatus.CONFLICT, "PLANTILLA_DUPLICADA", "Ya existe una plantilla con ese nombre.")
+				.conError("nombre", "Ya existe una plantilla con ese nombre.");
 	}
 }

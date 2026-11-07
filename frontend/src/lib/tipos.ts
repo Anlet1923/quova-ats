@@ -57,6 +57,14 @@ export interface Cargo {
   requisitos: string;
 }
 
+export interface Plantilla {
+  id: number;
+  nombre: string;
+  canal: string;
+  momento: string;
+  mensaje: string;
+}
+
 export interface Vacante {
   id: number;
   titulo: string;

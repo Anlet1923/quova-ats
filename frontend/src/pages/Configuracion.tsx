@@ -2,11 +2,9 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { Briefcase, CreditCard, Home, Mail, MessageCircle, Package, Pencil, Plus, ShieldCheck, ShoppingBag, Users, type LucideIcon } from 'lucide-react';
 import { api, ApiError, mensajeDe } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { PLANTILLAS_DEMO } from '../lib/demo';
 import { useAvisos } from '../lib/toast';
-import { ETIQUETA_ROL, iniciales, soles, type Cargo, type Rol, type Tienda, type Usuario, type Vacante } from '../lib/tipos';
+import { ETIQUETA_ROL, iniciales, soles, type Cargo, type Plantilla, type Rol, type Tienda, type Usuario, type Vacante } from '../lib/tipos';
 import { Boton, Campo, ErrorDeCarga, Esqueleto, Etiqueta, Modal, type Tono } from '../components/ui';
-import { DatosDeMuestra } from '../components/modulo';
 import { SinAcceso } from './Avisos';
 
 const ROLES_ADMIN: Rol[] = ['ADMIN'];
@@ -41,6 +39,16 @@ interface FormCargo {
   requisitos: string;
 }
 
+interface FormPlantilla {
+  id?: number;
+  nombre: string;
+  canal: string;
+  momento: string;
+  mensaje: string;
+}
+
+const CANALES = ['WhatsApp', 'Correo', 'WhatsApp y correo'];
+
 function Mensaje({ texto }: { texto: string }) {
   return (
     <>
@@ -68,16 +76,19 @@ export default function Configuracion() {
   const [error, setError] = useState<string | null>(null);
   const [usuarioForm, setUsuarioForm] = useState<FormUsuario | null>(null);
   const [cargoForm, setCargoForm] = useState<FormCargo | null>(null);
+  const [plantillaForm, setPlantillaForm] = useState<FormPlantilla | null>(null);
+  const [plantillas, setPlantillas] = useState<Plantilla[] | null>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [trabajando, setTrabajando] = useState(false);
 
   const cargar = useCallback(() => {
     setError(null);
-    return Promise.all([api<Usuario[]>('/usuarios'), api<Cargo[]>('/cargos'), api<Tienda[]>('/tiendas'), api<Vacante[]>('/vacantes')])
-      .then(([u, c, t, v]) => {
+    return Promise.all([api<Usuario[]>('/usuarios'), api<Cargo[]>('/cargos'), api<Tienda[]>('/tiendas'), api<Vacante[]>('/vacantes'), api<Plantilla[]>('/plantillas')])
+      .then(([u, c, t, v, p]) => {
         setUsuarios(u);
         setCargos(c);
         setTiendas(t);
+        setPlantillas(p);
         const conteo: Record<number, number> = {};
         v.filter((item) => item.estado === 'ABIERTA').forEach((item) => {
           conteo[item.cargoId] = (conteo[item.cargoId] ?? 0) + 1;
@@ -167,8 +178,43 @@ export default function Configuracion() {
     }
   };
 
+  const guardarPlantilla = async () => {
+    if (!plantillaForm) return;
+    const nuevos: Record<string, string> = {};
+    if (!plantillaForm.nombre.trim()) nuevos.nombre = 'Ingresa el nombre de la plantilla.';
+    if (!plantillaForm.momento.trim()) nuevos.momento = 'Indica cuándo se envía.';
+    if (!plantillaForm.mensaje.trim()) nuevos.mensaje = 'Escribe el mensaje.';
+    setErrores(nuevos);
+    if (Object.keys(nuevos).length) return;
+
+    setTrabajando(true);
+    try {
+      const cuerpo = {
+        nombre: plantillaForm.nombre.trim(),
+        canal: plantillaForm.canal,
+        momento: plantillaForm.momento.trim(),
+        mensaje: plantillaForm.mensaje.trim(),
+      };
+      const guardada = plantillaForm.id
+        ? await api<Plantilla>(`/plantillas/${plantillaForm.id}`, { method: 'POST', body: cuerpo })
+        : await api<Plantilla>('/plantillas', { method: 'POST', body: cuerpo });
+      setPlantillas((lista) => {
+        const resto = (lista ?? []).filter((p) => p.id !== guardada.id);
+        return [...resto, guardada].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+      });
+      setPlantillaForm(null);
+      avisos.exito(plantillaForm.id ? 'Plantilla actualizada.' : 'Plantilla creada.');
+    } catch (err) {
+      const apiErr = err instanceof ApiError ? err : null;
+      if (apiErr && Object.keys(apiErr.errores).length) setErrores(apiErr.errores);
+      else avisos.error(mensajeDe(err));
+    } finally {
+      setTrabajando(false);
+    }
+  };
+
   if (error) return <ErrorDeCarga mensaje={error} onReintentar={cargar} />;
-  if (!usuarios || !cargos) {
+  if (!usuarios || !cargos || !plantillas) {
     return (
       <div className="space-y-4">
         <Esqueleto className="h-12" />
@@ -180,7 +226,7 @@ export default function Configuracion() {
   const totales: Record<Pestana, number> = {
     'Usuarios y roles': usuarios.length,
     Cargos: cargos.length,
-    Plantillas: PLANTILLAS_DEMO.length,
+    Plantillas: plantillas.length,
   };
   const accion = pestana === 'Usuarios y roles' ? 'Invitar usuario' : pestana === 'Cargos' ? 'Nuevo cargo' : 'Nueva plantilla';
   const activos = usuarios.filter((u) => u.activo).length;
@@ -211,23 +257,22 @@ export default function Configuracion() {
             );
           })}
         </div>
-        {pestana === 'Plantillas' && <DatosDeMuestra />}
-        {pestana !== 'Plantillas' && (
-          <Boton
-            icono={Plus}
-            className="ml-auto"
-            onClick={() => {
-              setErrores({});
-              if (pestana === 'Usuarios y roles') {
-                setUsuarioForm({ nombre: '', correo: '', rol: 'RECLUTADOR', tiendaId: '', password: '', activo: true });
-              } else {
-                setCargoForm({ nombre: '', salario: '', descripcion: '', requisitos: '' });
-              }
-            }}
-          >
-            {accion}
-          </Boton>
-        )}
+        <Boton
+          icono={Plus}
+          className="ml-auto"
+          onClick={() => {
+            setErrores({});
+            if (pestana === 'Usuarios y roles') {
+              setUsuarioForm({ nombre: '', correo: '', rol: 'RECLUTADOR', tiendaId: '', password: '', activo: true });
+            } else if (pestana === 'Cargos') {
+              setCargoForm({ nombre: '', salario: '', descripcion: '', requisitos: '' });
+            } else {
+              setPlantillaForm({ nombre: '', canal: 'WhatsApp', momento: '', mensaje: '' });
+            }
+          }}
+        >
+          {accion}
+        </Boton>
       </div>
 
       <div className="mt-4 motion-safe:animate-entrada" key={pestana} role="tabpanel" aria-label={pestana}>
@@ -374,10 +419,10 @@ export default function Configuracion() {
 
         {pestana === 'Plantillas' && (
           <ul className="grid gap-4 lg:grid-cols-2">
-            {PLANTILLAS_DEMO.map((p) => {
+            {plantillas.map((p) => {
               const Icono = p.canal === 'Correo' ? Mail : MessageCircle;
               return (
-                <li key={p.nombre} className="tarjeta flex flex-col p-5">
+                <li key={p.id} className="tarjeta flex flex-col p-5">
                   <div className="flex items-start gap-3">
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primario-suave text-primario">
                       <Icono className="h-5 w-5" aria-hidden />
@@ -391,6 +436,19 @@ export default function Configuracion() {
                   <p className="mt-4 flex-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700">
                     <Mensaje texto={p.mensaje} />
                   </p>
+                  <Boton
+                    variante="secundario"
+                    chico
+                    icono={Pencil}
+                    className="mt-4 self-start"
+                    aria-label={`Editar plantilla ${p.nombre}`}
+                    onClick={() => {
+                      setErrores({});
+                      setPlantillaForm({ id: p.id, nombre: p.nombre, canal: p.canal, momento: p.momento, mensaje: p.mensaje });
+                    }}
+                  >
+                    Editar
+                  </Boton>
                 </li>
               );
             })}
@@ -474,6 +532,40 @@ export default function Configuracion() {
             </Campo>
             <Campo etiqueta="Requisitos" error={errores.requisitos} opcional>
               {(p) => <textarea {...p} rows={3} className="control" value={cargoForm.requisitos} onChange={(e) => setCargoForm({ ...cargoForm, requisitos: e.target.value })} />}
+            </Campo>
+          </form>
+        </Modal>
+      )}
+      {plantillaForm && (
+        <Modal
+          titulo={plantillaForm.id ? 'Editar plantilla' : 'Nueva plantilla'}
+          ancho="md"
+          onCerrar={() => setPlantillaForm(null)}
+          pie={
+            <>
+              <Boton variante="secundario" onClick={() => setPlantillaForm(null)}>Cancelar</Boton>
+              <Boton cargando={trabajando} onClick={() => void guardarPlantilla()}>Guardar</Boton>
+            </>
+          }
+        >
+          <form className="space-y-4" onSubmit={(e: FormEvent) => { e.preventDefault(); void guardarPlantilla(); }}>
+            <Campo etiqueta="Nombre" error={errores.nombre}>
+              {(p) => <input {...p} className={`control ${errores.nombre ? 'control-error' : ''}`} value={plantillaForm.nombre} onChange={(e) => setPlantillaForm({ ...plantillaForm, nombre: e.target.value })} autoFocus />}
+            </Campo>
+            <Campo etiqueta="Canal" error={errores.canal}>
+              {(p) => (
+                <select {...p} className="control" value={plantillaForm.canal} onChange={(e) => setPlantillaForm({ ...plantillaForm, canal: e.target.value })}>
+                  {CANALES.map((canal) => (
+                    <option key={canal} value={canal}>{canal}</option>
+                  ))}
+                </select>
+              )}
+            </Campo>
+            <Campo etiqueta="Cuándo se envía" error={errores.momento}>
+              {(p) => <input {...p} className={`control ${errores.momento ? 'control-error' : ''}`} value={plantillaForm.momento} onChange={(e) => setPlantillaForm({ ...plantillaForm, momento: e.target.value })} />}
+            </Campo>
+            <Campo etiqueta="Mensaje" error={errores.mensaje} ayuda="Puedes usar {nombre}, {cargo}, {tienda}, {fecha}, {hora} y {resultado}.">
+              {(p) => <textarea {...p} rows={4} className={`control ${errores.mensaje ? 'control-error' : ''}`} value={plantillaForm.mensaje} onChange={(e) => setPlantillaForm({ ...plantillaForm, mensaje: e.target.value })} />}
             </Campo>
           </form>
         </Modal>

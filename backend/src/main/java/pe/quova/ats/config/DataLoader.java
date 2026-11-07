@@ -25,12 +25,14 @@ import pe.quova.ats.model.Enums.Rol;
 import pe.quova.ats.model.Enums.Turno;
 import pe.quova.ats.model.Etapa;
 import pe.quova.ats.model.HistorialEtapa;
+import pe.quova.ats.model.Plantilla;
 import pe.quova.ats.model.Tienda;
 import pe.quova.ats.model.Usuario;
 import pe.quova.ats.model.Vacante;
 import pe.quova.ats.repo.CandidatoRepository;
 import pe.quova.ats.repo.CargoRepository;
 import pe.quova.ats.repo.HistorialEtapaRepository;
+import pe.quova.ats.repo.PlantillaRepository;
 import pe.quova.ats.repo.TiendaRepository;
 import pe.quova.ats.repo.UsuarioRepository;
 import pe.quova.ats.repo.VacanteRepository;
@@ -52,6 +54,7 @@ public class DataLoader implements CommandLineRunner {
 	private final VacanteRepository vacantes;
 	private final CandidatoRepository candidatos;
 	private final HistorialEtapaRepository historial;
+	private final PlantillaRepository plantillas;
 	private final PasswordEncoder encoder;
 
 	private final LocalDateTime ahora = LocalDateTime.now();
@@ -60,6 +63,16 @@ public class DataLoader implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) {
+		if (plantillas.count() == 0) {
+			plantilla("Confirmación de postulación", "WhatsApp", "Al recibir la postulación",
+					"Hola {nombre}, recibimos tu postulación a {cargo} en Quova {tienda}. Te escribiremos si tu perfil avanza.");
+			plantilla("Cita a entrevista", "WhatsApp y correo", "Al agendar la entrevista",
+					"Hola {nombre}, te esperamos el {fecha} a las {hora} en Quova {tienda} para tu entrevista. Responde SÍ para confirmar.");
+			plantilla("Resultado del proceso", "WhatsApp", "Al cerrar la evaluación",
+					"Hola {nombre}, gracias por participar en el proceso de {cargo}. Ya tenemos el resultado de tu evaluación: {resultado}.");
+			plantilla("Bienvenida", "Correo", "Al pasar a Contratado",
+					"¡Bienvenido(a) a Quova, {nombre}! Tu primer día es el {fecha} en la tienda {tienda}. Pregunta por {jefe}.");
+		}
 		if (usuarios.count() > 0) {
 			return;
 		}
@@ -150,6 +163,10 @@ public class DataLoader implements CommandLineRunner {
 	private Cargo cargo(String nombre, String salarioBase, String descripcion, String requisitos) {
 		return cargos.save(Cargo.builder().nombre(nombre).salarioBase(new BigDecimal(salarioBase))
 				.descripcion(descripcion).requisitos(requisitos).build());
+	}
+
+	private void plantilla(String nombre, String canal, String momento, String mensaje) {
+		plantillas.save(Plantilla.builder().nombre(nombre).canal(canal).momento(momento).mensaje(mensaje).build());
 	}
 
 	private Usuario usuario(String nombre, String correo, Rol rol, Tienda tienda, boolean activo) {

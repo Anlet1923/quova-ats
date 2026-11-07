@@ -207,4 +207,18 @@ public final class Dtos {
 
 	public record ReportesDto(List<ReporteFilaDto> porFuente, List<ReporteFilaDto> porCargo, List<ReporteFilaDto> porTienda) {
 	}
+
+	public record PlantillaDto(Long id, String nombre, String canal, String momento, String mensaje) {
+	}
+
+	public record PlantillaRequest(
+			@NotBlank(message = "Ingresa el nombre de la plantilla.")
+			@Size(max = 80, message = "El nombre admite hasta 80 caracteres.") String nombre,
+			@NotBlank(message = "Elige el canal.")
+			@Size(max = 40, message = "El canal admite hasta 40 caracteres.") String canal,
+			@NotBlank(message = "Indica cuándo se envía.")
+			@Size(max = 80, message = "El momento admite hasta 80 caracteres.") String momento,
+			@NotBlank(message = "Escribe el mensaje.")
+			@Size(max = 1000, message = "El mensaje admite hasta 1000 caracteres.") String mensaje) {
+	}
 }

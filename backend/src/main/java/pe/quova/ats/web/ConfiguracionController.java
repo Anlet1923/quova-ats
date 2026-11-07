@@ -18,6 +18,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import pe.quova.ats.dto.Dtos.CargoDto;
 import pe.quova.ats.dto.Dtos.CargoRequest;
+import pe.quova.ats.dto.Dtos.PlantillaDto;
+import pe.quova.ats.dto.Dtos.PlantillaRequest;
 import pe.quova.ats.dto.Dtos.UsuarioDto;
 import pe.quova.ats.dto.Dtos.UsuarioRequest;
 import pe.quova.ats.security.UsuarioActual;
@@ -64,5 +66,24 @@ public class ConfiguracionController {
 	@PreAuthorize(ADMIN)
 	public CargoDto actualizarCargo(@PathVariable Long id, @Valid @RequestBody CargoRequest req) {
 		return configuracion.actualizarCargo(id, req);
+	}
+
+	@GetMapping("/plantillas")
+	@PreAuthorize(ADMIN)
+	public List<PlantillaDto> plantillas() {
+		return configuracion.plantillas();
+	}
+
+	@PostMapping("/plantillas")
+	@ResponseStatus(HttpStatus.CREATED)
+	@PreAuthorize(ADMIN)
+	public PlantillaDto crearPlantilla(@Valid @RequestBody PlantillaRequest req) {
+		return configuracion.crearPlantilla(req);
+	}
+
+	@PostMapping("/plantillas/{id}")
+	@PreAuthorize(ADMIN)
+	public PlantillaDto actualizarPlantilla(@PathVariable Long id, @Valid @RequestBody PlantillaRequest req) {
+		return configuracion.actualizarPlantilla(id, req);
 	}
 }

@@ -293,6 +293,23 @@ class ReglasDeNegocioTest {
 	}
 
 	@Test
+	@DisplayName("Solo el admin guarda plantillas y no repite el nombre")
+	void gestionDePlantillas() throws Exception {
+		mvc.perform(post("/api/plantillas").header("Authorization", iniciarSesion("reclutador@quova.pe"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Aviso\",\"canal\":\"WhatsApp\",\"momento\":\"Al publicar\",\"mensaje\":\"Hola {nombre}\"}"))
+				.andExpect(status().isForbidden());
+
+		String admin = iniciarSesion("admin@quova.pe");
+		mvc.perform(post("/api/plantillas").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Aviso\",\"canal\":\"WhatsApp\",\"momento\":\"Al publicar\",\"mensaje\":\"Hola {nombre}\"}"))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.nombre").value("Aviso"));
+		mvc.perform(post("/api/plantillas").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"aviso\",\"canal\":\"Correo\",\"momento\":\"Al publicar\",\"mensaje\":\"Hola\"}"))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("PLANTILLA_DUPLICADA"));
+	}
+
+	@Test
 	@DisplayName("El reclutador agenda la entrevista y solo el jefe de esa tienda la evalúa")
 	void agendaYEvaluacionDeEntrevista() throws Exception {
 		String recluta = iniciarSesion("reclutador@quova.pe");

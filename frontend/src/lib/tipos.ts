@@ -20,6 +20,7 @@ export interface Usuario {
   rol: Rol;
   tiendaId: number | null;
   tienda: string | null;
+  activo: boolean;
 }
 
 export interface Tienda {

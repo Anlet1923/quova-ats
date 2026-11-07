@@ -39,7 +39,28 @@ public final class Dtos {
 			@NotBlank(message = "Ingresa tu contraseña.") String password) {
 	}
 
-	public record UsuarioDto(Long id, String nombre, String correo, Rol rol, Long tiendaId, String tienda) {
+	public record UsuarioDto(Long id, String nombre, String correo, Rol rol, Long tiendaId, String tienda,
+			boolean activo) {
+	}
+
+	public record UsuarioRequest(
+			@NotBlank(message = "Ingresa el nombre.")
+			@Size(max = 120, message = "El nombre admite hasta 120 caracteres.") String nombre,
+			@NotBlank(message = "Ingresa el correo corporativo.")
+			@Pattern(regexp = "(?i)^[\\w.+-]+@quova\\.pe$", message = "Usa un correo corporativo @quova.pe.") String correo,
+			@NotNull(message = "Elige un rol.") Rol rol,
+			Long tiendaId,
+			@Size(min = 8, max = 80, message = "La contraseña debe tener al menos 8 caracteres.") String password,
+			Boolean activo) {
+	}
+
+	public record CargoRequest(
+			@NotBlank(message = "Ingresa el nombre del cargo.")
+			@Size(max = 80, message = "El nombre admite hasta 80 caracteres.") String nombre,
+			@NotNull(message = "Indica el salario base.")
+			@Positive(message = "El salario debe ser mayor a cero.") BigDecimal salarioBase,
+			@Size(max = 1000, message = "La descripción admite hasta 1000 caracteres.") String descripcion,
+			@Size(max = 1000, message = "Los requisitos admiten hasta 1000 caracteres.") String requisitos) {
 	}
 
 	public record LoginResponse(String token, UsuarioDto usuario) {

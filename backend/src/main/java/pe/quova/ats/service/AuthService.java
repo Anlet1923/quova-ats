@@ -111,6 +111,6 @@ public class AuthService {
 	private static UsuarioDto aDto(Usuario u) {
 		return new UsuarioDto(u.getId(), u.getNombre(), u.getCorreo(), u.getRol(),
 				u.getTienda() != null ? u.getTienda().getId() : null,
-				u.getTienda() != null ? u.getTienda().getNombre() : null);
+				u.getTienda() != null ? u.getTienda().getNombre() : null, u.isActivo());
 	}
 }

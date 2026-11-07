@@ -9,4 +9,8 @@ import pe.quova.ats.model.Cargo;
 public interface CargoRepository extends JpaRepository<Cargo, Long> {
 
 	List<Cargo> findAllByOrderByIdAsc();
+
+	boolean existsByNombreIgnoreCase(String nombre);
+
+	boolean existsByNombreIgnoreCaseAndIdNot(String nombre, Long id);
 }

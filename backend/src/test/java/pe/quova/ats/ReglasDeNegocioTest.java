@@ -249,6 +249,30 @@ class ReglasDeNegocioTest {
 	}
 
 	@Test
+	@DisplayName("Solo el admin crea usuarios y cargos, y no repite correo ni nombre")
+	void gestionDeUsuariosYCargos() throws Exception {
+		mvc.perform(post("/api/usuarios").header("Authorization", iniciarSesion("reclutador@quova.pe"))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Nuevo\",\"correo\":\"nuevo@quova.pe\",\"rol\":\"RECLUTADOR\",\"password\":\"Quova2026!\"}"))
+				.andExpect(status().isForbidden());
+
+		String admin = iniciarSesion("admin@quova.pe");
+		mvc.perform(post("/api/usuarios").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Nuevo Recluta\",\"correo\":\"nuevo@quova.pe\",\"rol\":\"RECLUTADOR\",\"password\":\"Quova2026!\"}"))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.correo").value("nuevo@quova.pe"));
+		mvc.perform(post("/api/usuarios").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Otro\",\"correo\":\"nuevo@quova.pe\",\"rol\":\"RECLUTADOR\",\"password\":\"Quova2026!\"}"))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("USUARIO_DUPLICADO"));
+
+		mvc.perform(post("/api/cargos").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"Supervisor\",\"salarioBase\":1800,\"descripcion\":\"Apoya al encargado\"}"))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.nombre").value("Supervisor"));
+		mvc.perform(post("/api/cargos").header("Authorization", admin).contentType(MediaType.APPLICATION_JSON)
+				.content("{\"nombre\":\"supervisor\",\"salarioBase\":1800}"))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("CARGO_DUPLICADO"));
+	}
+
+	@Test
 	@DisplayName("Un usuario inactivo no puede entrar (403) y un correo no corporativo se rechaza (400)")
 	void usuarioInactivoYCorreoNoCorporativo() throws Exception {
 		login("inactivo@quova.pe", DataLoader.CLAVE_DEMO).andExpect(status().isForbidden())
